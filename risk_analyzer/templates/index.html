@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Risk Analysis Orchestrator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0b1020;
+      color: #f5f5f5;
+    }
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .card {
+      background: #111827;
+      border-radius: 16px;
+      padding: 20px 20px 16px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+      border: 1px solid #1f2937;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+    h2 {
+      font-size: 1.1rem;
+      margin-top: 20px;
+    }
+    .subtitle {
+      color: #9ca3af;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+    label {
+      font-size: 0.9rem;
+      color: #d1d5db;
+      display: block;
+      margin-bottom: 6px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.95rem;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px #38bdf8;
+    }
+    button {
+      background: linear-gradient(135deg,#2563eb,#38bdf8);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .result-box {
+      margin-top: 12px;
+      max-height: 340px;
+      overflow: auto;
+      background: #020617;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #1f2937;
+      font-size: 0.85rem;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      background: #064e3b;
+      color: #a7f3d0;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .clarification-section {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px dashed #1f2937;
+      display: none; /* hidden by default; shown when human_input == true */
+    }
+    .clarification-list {
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      margin-bottom: 10px;
+      padding-left: 18px;
+    }
+    .clarification-title {
+      font-size: 0.9rem;
+      color: #93c5fd;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .status-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-left: 6px;
+    }
+    .status-failed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fecaca;
+      border: 1px solid #ef4444;
+    }
+    .status-success {
+      background: rgba(22, 163, 74, 0.15);
+      color: #bbf7d0;
+      border: 1px solid #16a34a;
+    }
+    .status-progress {
+      background: rgba(59, 130, 246, 0.15);
+      color: #bfdbfe;
+      border: 1px solid #3b82f6;
+    }
+
+    /* Markdown / summary styling */
+    .summary-markup {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .summary-markup h1,
+    .summary-markup h2,
+    .summary-markup h3 {
+      margin: 0.4rem 0 0.3rem;
+      font-weight: 600;
+    }
+    .summary-markup ul,
+    .summary-markup ol {
+      margin: 0.2rem 0 0.4rem 1.2rem;
+      padding-left: 1.1rem;
+    }
+    .summary-markup li {
+      margin-bottom: 0.15rem;
+    }
+    .summary-markup p {
+      margin: 0.25rem 0;
+    }
+    .summary-markup code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: rgba(15,23,42,0.9);
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+  </style>
+
+  <!-- Simple markdown parser (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <h1>
+        Risk Analysis Orchestrator
+        <span id="statusPill" class="status-pill status-progress" style="display:none;"></span>
+      </h1>
+      <div class="subtitle">
+        Paste your project / contract description, let the agents analyze risks, and if needed,
+        answer follow-up clarification questions to refine the analysis.
+      </div>
+
+      <!-- Project description -->
+      <div>
+        <label for="projectDescription">Project / Contract Description</label>
+        <textarea id="projectDescription" placeholder="Example: Our go-live depends on a new vendor API which has been unstable in testing. If it fails in production, we have no rollback plan and tight customer SLAs."></textarea>
+      </div>
+
+      <!-- Clarification section (shown only if human_input == true) -->
+      <div id="clarificationSection" class="clarification-section">
+        <div class="clarification-title">Agent needs more information</div>
+        <ul id="clarificationList" class="clarification-list"></ul>
+
+        <label for="feedbackInput">Your clarification / answers</label>
+        <textarea id="feedbackInput" placeholder="Type your answers to the above questions here. On next run, the orchestrator will use this as additional human feedback."></textarea>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <div style="font-size:0.8rem; color:#9ca3af;">
+          The agent may first validate your input, then ask clarification questions,
+          and finally return a risk analysis summary.
+        </div>
+        <button id="analyzeBtn">
+          <span id="btnLabel">Analyze Risk</span>
+        </button>
+      </div>
+
+      <h2>Assistant Output</h2>
+      <div id="summaryBox" class="result-box">
+        <!-- changed from <pre> to a div that will render Markdown -->
+        <div id="summaryText" class="summary-markup">Waiting for input…</div>
+      </div>
+
+      <h2 style="margin-top:18px;">
+        Orchestrator State
+        <span class="badge">Debug</span>
+      </h2>
+      <div class="result-box">
+        <pre id="debugJson">No data yet.</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById("analyzeBtn");
+    const btnLabel = document.getElementById("btnLabel");
+    const projectDescriptionEl = document.getElementById("projectDescription");
+    const feedbackInputEl = document.getElementById("feedbackInput");
+    const clarificationSection = document.getElementById("clarificationSection");
+    const clarificationList = document.getElementById("clarificationList");
+    const summaryText = document.getElementById("summaryText");
+    const debugJson = document.getElementById("debugJson");
+    const statusPill = document.getElementById("statusPill");
+
+    function setStatusPill(status) {
+      statusPill.style.display = status ? "inline-block" : "none";
+      statusPill.className = "status-pill"; // reset
+
+      if (!status) return;
+
+      if (status === "failed") {
+        statusPill.textContent = "Failed";
+        statusPill.classList.add("status-failed");
+      } else if (status === "success") {
+        statusPill.textContent = "Success";
+        statusPill.classList.add("status-success");
+      } else {
+        statusPill.textContent = "In Progress";
+        statusPill.classList.add("status-progress");
+      }
+    }
+
+    function showClarification(clarifications) {
+      if (!clarifications || !clarifications.length) {
+        clarificationSection.style.display = "none";
+        clarificationList.innerHTML = "";
+        feedbackInputEl.value = "";
+        return;
+      }
+      clarificationSection.style.display = "block";
+      clarificationList.innerHTML = "";
+      clarifications.forEach(q => {
+        const li = document.createElement("li");
+        li.textContent = q;
+        clarificationList.appendChild(li);
+      });
+    }
+
+    // Helper: render markdown if possible, else plain text
+    function renderMarkdown(targetEl, markdown) {
+      if (window.marked && typeof marked.parse === "function") {
+        targetEl.innerHTML = marked.parse(markdown);
+      } else {
+        targetEl.textContent = markdown;
+      }
+    }
+
+    btn.addEventListener("click", async () => {
+      const projectText = projectDescriptionEl.value.trim();
+      const feedbackText = feedbackInputEl.value.trim();
+
+      if (!projectText) {
+        alert("Please enter a project / contract description.");
+        return;
+      }
+
+      btn.disabled = true;
+      btnLabel.textContent = "Running Orchestrator…";
+      summaryText.textContent = "Analyzing with orchestrator agents…";
+      setStatusPill("in_progress");
+
+      const payload = {
+        project_description: projectText,
+        feedback: feedbackText || ""
+      };
+
+      try {
+        const res = await fetch("/analyze_contract_risk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        debugJson.textContent = JSON.stringify(data, null, 2);
+
+        if (!res.ok) {
+          setStatusPill("failed");
+          summaryText.textContent =
+            "Error: " + (data.message || "Unknown error") +
+            (data.errors ? "\n\nDetails: " + data.errors.join("; ") : "");
+          showClarification(null);
+          btnLabel.textContent = "Analyze Risk";
+          return;
+        }
+
+        // Update status pill from orchestrator
+        setStatusPill(data.status || "in_progress");
+
+        const report = data.risk_analysis_report || null;
+        let needsHuman = false;
+        let clarifications = [];
+
+        // Detect human-in-the-loop requirement based on risk_analysis_report.human_input
+        if (report && typeof report === "object") {
+          if (report.human_input === true) {
+            needsHuman = true;
+            clarifications = Array.isArray(report.clarification)
+              ? report.clarification
+              : [];
+          }
+        }
+
+        if (data.status === "failed") {
+          // Validation or input-level failure (plain text is fine here)
+          summaryText.textContent =
+            "Validation failed.\n\n" +
+            (data.message || "") +
+            (data.errors && data.errors.length
+              ? "\n\nDetails:\n- " + data.errors.join("\n- ")
+              : "");
+          showClarification(null);
+          btnLabel.textContent = "Analyze Risk";
+        } else if (needsHuman) {
+          // Human-in-loop step: show questions and keep summary as guidance
+          showClarification(clarifications);
+          summaryText.textContent =
+            "The risk analysis agent needs more information.\n\n" +
+            (clarifications.length
+              ? "Please answer the clarification questions below and click “Submit Clarifications & Re-Analyze”."
+              : "Please provide additional details in the clarification box and re-run analysis.");
+          btnLabel.textContent = "Submit Clarifications & Re-Analyze";
+        } else {
+          // No further human input required: show final summary
+          showClarification(null);
+
+          const summary =
+            data.summary ||
+            (report && typeof report === "object"
+              ? JSON.stringify(report, null, 2)
+              : data.message || "No summary available.");
+
+          // Render final summary as markdown for readability
+          renderMarkdown(summaryText, summary);
+
+          btnLabel.textContent = "Analyze Risk";
+          // clear feedback for next run
+          feedbackInputEl.value = "";
+        }
+      } catch (e) {
+        setStatusPill("failed");
+        summaryText.textContent = "Request failed: " + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
