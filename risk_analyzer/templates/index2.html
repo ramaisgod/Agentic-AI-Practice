@@ -2,25 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Icertis – AI Risk Orchestrator</title>
+  <title>Risk Analysis Orchestrator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     :root {
-      --bg: #f3f4f6;
-      --bg-alt: #e5e7eb;
-      --card: #ffffff;
-      --border-subtle: rgba(148,163,184,0.4);
-      --accent: #2563eb;
-      --accent-soft: rgba(37,99,235,0.08);
-      --accent-strong: #1d4ed8;
-      --text-main: #0f172a;
-      --text-muted: #6b7280;
-      --text-soft: #9ca3af;
-      --danger: #dc2626;
-      --success: #16a34a;
+      --bg: #020617;
+      --bg-alt: #050816;
+      --card: rgba(15,23,42,0.96);
+      --border-subtle: rgba(148,163,184,0.2);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.12);
+      --accent-strong: #2563eb;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-soft: #6b7280;
+      --danger: #ef4444;
+      --success: #22c55e;
     }
 
+    /* ===== Base ===== */
     * {
       box-sizing: border-box;
     }
@@ -28,25 +29,26 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at top, #ffffff 0, #eff6ff 45%, #e5e7eb 100%);
+      background: radial-gradient(circle at top, #1f2937 0, #020617 40%, #000 100%);
       color: var(--text-main);
       min-height: 100vh;
     }
 
+    /* Subtle background grid */
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       background-image: linear-gradient(
-          rgba(209,213,219,0.45) 1px,
+          rgba(15,23,42,0.35) 1px,
           transparent 1px
         ),
         linear-gradient(
           90deg,
-          rgba(209,213,219,0.45) 1px,
+          rgba(15,23,42,0.35) 1px,
           transparent 1px
         );
-      background-size: 52px 52px;
+      background-size: 40px 40px;
       opacity: 0.25;
       pointer-events: none;
       z-index: -2;
@@ -59,13 +61,15 @@
     }
 
     .card {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 22px 24px 20px;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(34,197,94,0.14), transparent 55%),
+                  var(--card);
+      border-radius: 24px;
+      padding: 20px 22px 18px;
       box-shadow:
-        0 24px 70px rgba(15,23,42,0.14),
-        0 0 0 1px rgba(148,163,184,0.25);
-      border: 1px solid rgba(209,213,219,0.9);
+        0 30px 80px rgba(0,0,0,0.72),
+        0 0 0 1px rgba(148,163,184,0.15);
+      border: 1px solid rgba(30,64,175,0.65);
       position: relative;
       overflow: hidden;
     }
@@ -74,10 +78,17 @@
       content: "";
       position: absolute;
       inset: -40%;
-      background: radial-gradient(circle at top left, rgba(37,99,235,0.10), transparent 65%),
-                  radial-gradient(circle at bottom right, rgba(22,163,74,0.10), transparent 65%);
-      opacity: 0.9;
-      pointer-events: none;
+      background: conic-gradient(
+        from 210deg,
+        rgba(56,189,248,0.15),
+        transparent,
+        rgba(52,211,153,0.12),
+        transparent,
+        rgba(129,140,248,0.15),
+        transparent
+      );
+      opacity: 0.32;
+      filter: blur(90px);
       z-index: -1;
     }
 
@@ -87,87 +98,72 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
     .title-block {
       display: flex;
       align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
+      gap: 10px;
     }
-
-    .brand-logo {
-      height: 34px;
-      width: auto;
-      display: block;
-    }
-
-    .brand-divider {
-      width: 1px;
-      height: 32px;
-      background: rgba(209,213,219,0.9);
-    }
-
     .app-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 14px;
-      background: radial-gradient(circle at 30% 20%, #eff6ff 0, #bfdbfe 40%, #1d4ed8 100%);
+      width: 40px;
+      height: 40px;
+      border-radius: 16px;
+      background: radial-gradient(circle at 30% 20%, #f9fafb 0, #38bdf8 32%, #0f172a 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 30px rgba(148,163,184,0.6);
+      box-shadow: 0 10px 30px rgba(15,23,42,0.7);
       position: relative;
-      flex-shrink: 0;
     }
     .app-icon::after {
       content: "";
       position: absolute;
       inset: 5px;
       border-radius: inherit;
-      border: 1px solid rgba(248,250,252,0.7);
-      opacity: 0.9;
+      border: 1px solid rgba(248,250,252,0.5);
+      opacity: 0.6;
     }
     .app-icon span {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
       color: #0f172a;
     }
 
     h1 {
-      font-size: 1.9rem;
+      font-size: 1.7rem;
       margin: 0;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.03em;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .subtitle {
       color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-top: 4px;
-      margin-bottom: 0;
-      max-width: 640px;
+      font-size: 0.92rem;
+      margin-bottom: 18px;
+      max-width: 620px;
     }
 
     .badge-pill {
       border-radius: 999px;
-      border: 1px solid rgba(209,213,219,0.9);
-      padding: 4px 11px;
+      border: 1px solid rgba(148,163,184,0.5);
+      padding: 4px 10px;
       font-size: 0.72rem;
       color: var(--text-muted);
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #ffffff;
+      background: rgba(15,23,42,0.8);
+      backdrop-filter: blur(10px);
       white-space: nowrap;
     }
     .badge-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 0 0 rgba(34,197,94,0.65);
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34,197,94,0.8);
       animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
 
@@ -186,12 +182,12 @@
       }
     }
 
-    /* ===== Layout ===== */
+    /* ===== Layout (Form + Output) ===== */
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
       gap: 18px;
-      margin-top: 18px;
+      margin-top: 16px;
     }
     @media (max-width: 900px) {
       .layout {
@@ -202,13 +198,13 @@
     .panel {
       background: linear-gradient(
           135deg,
-          #ffffff,
-          #f9fafb
+          rgba(15,23,42,0.98),
+          rgba(15,23,42,0.92)
         );
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 14px 14px 16px;
-      border: 1px solid rgba(229,231,235,0.95);
-      box-shadow: 0 14px 40px rgba(15,23,42,0.06);
+      border: 1px solid rgba(148,163,184,0.28);
+      box-shadow: 0 14px 35px rgba(0,0,0,0.6);
       position: relative;
       overflow: hidden;
     }
@@ -216,8 +212,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at top, rgba(248,250,252,0.9), transparent 60%);
-      opacity: 0.7;
+      background: radial-gradient(circle at top, rgba(248,250,252,0.03), transparent 60%);
+      opacity: 0.9;
       pointer-events: none;
     }
 
@@ -227,14 +223,12 @@
       justify-content: space-between;
       gap: 8px;
       margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
     }
     .panel-title {
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       text-transform: uppercase;
       letter-spacing: 0.09em;
-      color: var(--text-soft);
+      color: #9ca3af;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -244,84 +238,17 @@
       height: 7px;
       border-radius: 50%;
       background: var(--accent);
-      box-shadow: 0 0 8px rgba(37,99,235,0.7);
+      box-shadow: 0 0 12px rgba(56,189,248,0.9);
     }
     .panel-subtitle {
       font-size: 0.78rem;
       color: var(--text-soft);
     }
 
-    /* ===== Progress Steps (Right Panel) ===== */
-    .progress-wrapper {
-      position: relative;
-      z-index: 1;
-      margin-bottom: 10px;
-    }
-    .progress-steps {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      position: relative;
-      padding: 6px 4px 4px;
-    }
-    .progress-steps::before {
-      content: "";
-      position: absolute;
-      top: 14px;
-      left: 8%;
-      right: 8%;
-      height: 2px;
-      background: #e5e7eb;
-      z-index: 0;
-    }
-    .progress-step {
-      flex: 1;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
-    .progress-dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      margin: 0 auto 4px;
-      border: 2px solid #e5e7eb;
-      background: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      color: var(--text-soft);
-    }
-    .progress-label {
-      font-size: 0.72rem;
-      color: var(--text-soft);
-      white-space: nowrap;
-    }
-    .progress-step.is-active .progress-dot {
-      border-color: var(--accent);
-      background: #eff6ff;
-      color: var(--accent-strong);
-      box-shadow: 0 0 0 3px rgba(191,219,254,0.8);
-    }
-    .progress-step.is-active .progress-label {
-      color: var(--accent-strong);
-      font-weight: 600;
-    }
-    .progress-step.is-done .progress-dot {
-      border-color: var(--success);
-      background: #ecfdf3;
-      color: #16a34a;
-    }
-    .progress-step.is-done .progress-label {
-      color: #15803d;
-    }
-
     /* ===== Form elements ===== */
     label {
       font-size: 0.82rem;
-      color: var(--text-main);
+      color: #d1d5db;
       display: block;
       margin-bottom: 6px;
       font-weight: 500;
@@ -330,28 +257,29 @@
     textarea {
       width: 100%;
       min-height: 120px;
-      border-radius: 12px;
-      padding: 11px 12px;
-      border: 1px solid rgba(209,213,219,0.9);
-      background: #ffffff;
+      border-radius: 14px;
+      padding: 12px 12px 11px;
+      border: 1px solid rgba(51,65,85,0.9);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.9), rgba(2,6,23,1));
       color: var(--text-main);
       font-size: 0.92rem;
       resize: vertical;
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.08s ease;
     }
     textarea::placeholder {
-      color: rgba(148,163,184,0.85);
+      color: rgba(148,163,184,0.55);
     }
     textarea:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow:
-        0 0 0 1px rgba(37,99,235,0.30),
-        0 8px 22px rgba(15,23,42,0.10);
-      background: #ffffff;
+        0 0 0 1px rgba(56,189,248,0.4),
+        0 16px 40px rgba(15,23,42,0.9);
+      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(2,6,23,1));
       transform: translateY(-1px);
     }
 
+    /* File row */
     .file-row {
       display: flex;
       flex-wrap: wrap;
@@ -380,11 +308,11 @@
       gap: 6px;
       padding: 6px 11px;
       border-radius: 999px;
-      border: 1px solid rgba(209,213,219,0.9);
+      border: 1px solid rgba(148,163,184,0.6);
       font-size: 0.8rem;
-      background: #ffffff;
+      background: rgba(15,23,42,0.95);
       color: var(--text-main);
-      transition: background 0.15s ease, transform 0.08s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      transition: background 0.15s ease, transform 0.08s ease, border-color 0.15s ease;
     }
     .file-button-icon {
       width: 14px;
@@ -395,13 +323,11 @@
       align-items: center;
       justify-content: center;
       font-size: 10px;
-      color: var(--accent-strong);
     }
     .file-button:hover {
-      background: #f9fafb;
+      background: rgba(15,23,42,1);
       transform: translateY(-0.5px);
-      border-color: rgba(37,99,235,0.65);
-      box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+      border-color: rgba(56,189,248,0.7);
     }
 
     .file-hint {
@@ -411,25 +337,23 @@
     }
     .pill-muted {
       border-radius: 999px;
-      border: 1px dashed rgba(209,213,219,0.9);
+      border: 1px dashed rgba(55,65,81,0.9);
       padding: 3px 9px;
       font-size: 0.75rem;
-      color: var(--text-soft);
-      background: #f9fafb;
+      color: var(--text-muted);
+      background: rgba(15,23,42,0.9);
     }
 
-    /* Clarification */
+    /* ===== Clarification ===== */
     .clarification-section {
       margin-top: 15px;
       padding-top: 12px;
-      border-top: 1px dashed rgba(209,213,219,0.9);
+      border-top: 1px dashed rgba(31,41,55,0.9);
       display: none;
-      position: relative;
-      z-index: 1;
     }
     .clarification-title {
       font-size: 0.88rem;
-      color: var(--accent-strong);
+      color: #93c5fd;
       margin-bottom: 6px;
       font-weight: 600;
       display: flex;
@@ -447,15 +371,13 @@
       padding-left: 18px;
     }
 
-    /* Button & status */
+    /* ===== Button & status ===== */
     .row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
-      position: relative;
-      z-index: 1;
     }
 
     button {
@@ -463,15 +385,15 @@
       color: white;
       border: none;
       border-radius: 999px;
-      padding: 9px 18px;
+      padding: 9px 17px;
       font-size: 0.9rem;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 7px;
       box-shadow:
-        0 12px 30px rgba(37,99,235,0.35),
-        0 0 0 1px rgba(191,219,254,0.5);
+        0 12px 30px rgba(37,99,235,0.55),
+        0 0 0 1px rgba(191,219,254,0.2);
       transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.05s ease;
       white-space: nowrap;
     }
@@ -484,8 +406,8 @@
       width: 16px;
       height: 16px;
       border-radius: 999px;
-      border: 2px solid rgba(248,250,252,0.95);
-      border-top-color: rgba(15,23,42,0.7);
+      border: 2px solid rgba(248,250,252,0.85);
+      border-top-color: rgba(15,23,42,0.9);
       animation: spin 0.9s linear infinite;
       display: none;
     }
@@ -499,25 +421,25 @@
       transform: translateY(-1px);
       filter: brightness(1.03);
       box-shadow:
-        0 16px 40px rgba(37,99,235,0.45),
-        0 0 0 1px rgba(191,219,254,0.8);
+        0 16px 40px rgba(37,99,235,0.7),
+        0 0 0 1px rgba(191,219,254,0.3);
     }
     button:active:not(:disabled) {
       transform: translateY(0);
       box-shadow:
-        0 10px 26px rgba(15,23,42,0.18),
-        0 0 0 1px rgba(191,219,254,0.7);
+        0 10px 26px rgba(15,23,42,0.9),
+        0 0 0 1px rgba(191,219,254,0.2);
     }
     button:disabled {
-      opacity: 0.7;
+      opacity: 0.6;
       cursor: not-allowed;
-      box-shadow: 0 0 0 1px rgba(209,213,219,0.9);
+      box-shadow: 0 0 0 1px rgba(148,163,184,0.2);
     }
 
     .row-hint {
       font-size: 0.78rem;
       color: var(--text-soft);
-      max-width: 260px;
+      max-width: 230px;
     }
 
     .status-pill {
@@ -527,63 +449,63 @@
       font-size: 0.75rem;
       margin-left: 6px;
       border: 1px solid transparent;
-      background: #eff6ff;
-      color: var(--accent-strong);
+      backdrop-filter: blur(10px);
+      background: rgba(15,23,42,0.95);
     }
     .status-failed {
-      background: #fef2f2;
-      color: #b91c1c;
-      border-color: #fecaca;
+      background: rgba(239, 68, 68, 0.16);
+      color: #fecaca;
+      border-color: var(--danger);
     }
     .status-success {
-      background: #ecfdf3;
-      color: #166534;
-      border-color: #bbf7d0;
+      background: rgba(22, 163, 74, 0.16);
+      color: #bbf7d0;
+      border-color: #16a34a;
     }
     .status-progress {
-      background: #eff6ff;
-      color: #1d4ed8;
-      border-color: #bfdbfe;
+      background: rgba(59, 130, 246, 0.19);
+      color: #bfdbfe;
+      border-color: #3b82f6;
     }
 
-    /* Output boxes */
+    /* ===== Output boxes ===== */
     h2 {
       font-size: 1rem;
       margin: 0 0 6px;
       display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--text-main);
+      color: #e5e7eb;
     }
     h2 .badge {
       display: inline-block;
       padding: 2px 8px;
       font-size: 0.72rem;
       border-radius: 999px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
+      background: rgba(8,47,73,0.9);
+      color: #a7f3d0;
+      border: 1px solid rgba(45,212,191,0.4);
     }
 
     .result-box {
       margin-top: 6px;
       max-height: 340px;
       overflow: auto;
-      background: #f9fafb;
-      border-radius: 12px;
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(2,6,23,0.98));
+      border-radius: 14px;
       padding: 12px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid rgba(31,41,55,0.9);
       font-size: 0.86rem;
-      box-shadow: inset 0 0 0 1px rgba(243,244,246,0.9);
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.9);
     }
     .result-box::-webkit-scrollbar {
       width: 7px;
     }
     .result-box::-webkit-scrollbar-track {
-      background: #f3f4f6;
+      background: rgba(15,23,42,0.9);
     }
     .result-box::-webkit-scrollbar-thumb {
-      background: #d1d5db;
+      background: rgba(55,65,81,0.9);
       border-radius: 999px;
     }
 
@@ -593,13 +515,13 @@
       word-break: break-word;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 0.8rem;
-      color: #111827;
+      color: #cbd5f5;
     }
 
+    /* Markdown / summary styling */
     .summary-markup {
       font-size: 0.9rem;
       line-height: 1.5;
-      color: var(--text-main);
     }
     .summary-markup h1,
     .summary-markup h2,
@@ -620,12 +542,13 @@
     }
     .summary-markup code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: #e5e7eb;
+      background: rgba(15,23,42,0.9);
       padding: 1px 4px;
       border-radius: 4px;
       font-size: 0.8rem;
     }
 
+    /* Tiny “typing” shimmer for the summary when loading */
     .summary-loading {
       position: relative;
       overflow: hidden;
@@ -637,10 +560,10 @@
       background: linear-gradient(
         110deg,
         transparent 0%,
-        rgba(209,213,219,0.45) 40%,
+        rgba(148,163,184,0.09) 40%,
         transparent 80%
       );
-      animation: shimmer 0.5s infinite;
+      animation: shimmer 1.5s infinite;
       pointer-events: none;
     }
 
@@ -653,44 +576,9 @@
       }
     }
 
-.hero-title {
-  font-size: 1.9rem;
-  margin: 0;
-  letter-spacing: 0.02em;
-  font-weight: 700;
-
-  /* Animated gradient */
-  background: linear-gradient(
-    135deg,
-    Red,
-    Blue,
-    Green,
-    Yellow,
-    Cyan
-  );
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-
-  animation: gradientFlow 3s ease infinite;
-}
-
-/* Animation keyframes */
-@keyframes gradientFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
-  }
-}
-
   </style>
 
+  <!-- Simple markdown parser (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
@@ -698,27 +586,23 @@
     <div class="card">
       <div class="header-row">
         <div class="title-block">
-          <img
-            src="{{ url_for('static', filename='icertis-logo.svg') }}"
-            alt="Icertis Logo"
-            class="brand-logo"
-          />
-          <div class="brand-divider"></div>
-
+          <div class="app-icon">
+            <span>I</span>
+          </div>
           <div>
-            <h1 class="hero-title">
-              AI-Powered Risk Orchestrator
+            <h1>
+              Risk Analysis Orchestrator
               <span id="statusPill" class="status-pill status-progress" style="display:none;"></span>
             </h1>
-            <p class="subtitle">
-              Upload a contract or describe your project. The orchestrator classifies risks, highlights gaps,
-              and guides you through clarifications before producing a concise risk brief.
-            </p>
+            <div class="subtitle">
+              Provide your project / contract description as text or upload a document.
+              The agents will analyze risks, ask for clarifications if needed, and bring everything together into a concise summary.
+            </div>
           </div>
         </div>
         <div class="badge-pill">
           <span class="badge-dot"></span>
-          Multi-agent · Human-in-loop
+          Agentic workflow · Human-in-loop
         </div>
       </div>
 
@@ -732,24 +616,23 @@
                 Input & Clarifications
               </div>
               <div class="panel-subtitle">
-                Start with a description or document. Refine the analysis as agents ask questions.
+                Describe the project or attach a contract. You can refine later using agent questions.
               </div>
             </div>
           </div>
 
+          <!-- Form wrapper for text + file + feedback -->
           <form id="riskForm" enctype="multipart/form-data" onsubmit="return false;">
+            <!-- Project description -->
             <div>
-              <label for="projectDescription">Project / Contract Description</label>
-              <textarea
-                id="projectDescription"
-                name="project_description"
-                placeholder="Example: Our go-live depends on a new vendor API which has been unstable in testing. If it fails in production, we have no rollback plan and tight customer SLAs."></textarea>
+              <label for="projectDescription">Project / Contract Description (text)</label>
+              <textarea id="projectDescription" name="project_description" placeholder="Example: Our go-live depends on a new vendor API which has been unstable in testing. If it fails in production, we have no rollback plan and tight customer SLAs."></textarea>
 
               <div class="file-row">
                 <div class="file-input-wrapper">
                   <div class="file-button">
                     <div class="file-button-icon">↑</div>
-                    <span>Attach contract file</span>
+                    <span>Upload document</span>
                   </div>
                   <input
                     type="file"
@@ -760,28 +643,26 @@
                 <span class="pill-muted">Supported: .docx, .pdf, .txt</span>
               </div>
               <div class="file-hint">
-                You can either paste the description or upload a file. If both are provided, the backend decides how to combine them.
+                Either type the description above, or upload a file. If both are provided, the backend can decide how to combine them.
               </div>
             </div>
 
+            <!-- Clarification section (shown only if human_input == true) -->
             <div id="clarificationSection" class="clarification-section">
               <div class="clarification-title">Agent needs more information</div>
               <ul id="clarificationList" class="clarification-list"></ul>
 
               <label for="feedbackInput">Your clarification / answers</label>
-              <textarea
-                id="feedbackInput"
-                name="feedback"
-                placeholder="Reply to the agent questions here. The next run will factor this context into the risk analysis."></textarea>
+              <textarea id="feedbackInput" name="feedback" placeholder="Type your answers to the above questions here. On next run, the orchestrator will use this as additional human feedback."></textarea>
             </div>
 
             <div class="row" style="margin-top:14px;">
               <div class="row-hint">
-                Run a full risk review now. You can refine and rerun whenever the scope or assumptions change.
+                The orchestrator may show intermediate reasoning and then refine a final risk summary.
               </div>
               <button id="analyzeBtn" type="button">
                 <div class="btn-icon" id="btnSpinner"></div>
-                <span id="btnLabel">Run Risk Review</span>
+                <span id="btnLabel">Analyze Risk</span>
               </button>
             </div>
           </form>
@@ -793,27 +674,10 @@
             <div>
               <div class="panel-title">
                 <span class="panel-title-dot"></span>
-                Orchestration Overview
+                Assistant Output
               </div>
               <div class="panel-subtitle">
-                See where the workflow is and review the generated summary.
-              </div>
-            </div>
-          </div>
-
-          <div class="progress-wrapper">
-            <div class="progress-steps">
-              <div class="progress-step" data-step="1">
-                <div class="progress-dot">1</div>
-                <div class="progress-label">Input & Validation</div>
-              </div>
-              <div class="progress-step" data-step="2">
-                <div class="progress-dot">2</div>
-                <div class="progress-label">Risk Analysis</div>
-              </div>
-              <div class="progress-step" data-step="3">
-                <div class="progress-dot">3</div>
-                <div class="progress-label">Final Summary</div>
+                Live risk summary, clarifications, and orchestrator state for debugging.
               </div>
             </div>
           </div>
@@ -823,6 +687,7 @@
             <div id="summaryBox" class="result-box">
               <div id="summaryText" class="summary-markup">Waiting for input…</div>
             </div>
+
           </div>
         </div>
       </div> <!-- /layout -->
@@ -841,20 +706,6 @@
   const statusPill = document.getElementById("statusPill");
   const fileInputEl = document.getElementById("descriptionFile");
   const summaryBox = document.getElementById("summaryBox");
-  const progressSteps = document.querySelectorAll(".progress-step");
-
-  function updateProgress(step) {
-    progressSteps.forEach(s => {
-      const num = Number(s.dataset.step);
-      s.classList.remove("is-active", "is-done");
-      if (num < step) {
-        s.classList.add("is-done");
-      } else if (num === step) {
-        s.classList.add("is-active");
-      }
-    });
-  }
-  updateProgress(1);
 
   // ---- File upload handler ----
   fileInputEl.addEventListener("change", async () => {
@@ -878,6 +729,7 @@
         return;
       }
 
+      // Populate textarea with extracted text
       projectDescriptionEl.value = data.project_description || "";
     } catch (e) {
       alert("Upload error: " + e.message);
@@ -888,7 +740,7 @@
 
   function setStatusPill(status) {
     statusPill.style.display = status ? "inline-block" : "none";
-    statusPill.className = "status-pill";
+    statusPill.className = "status-pill"; // reset
 
     if (!status) return;
 
@@ -896,7 +748,7 @@
       statusPill.textContent = "Failed";
       statusPill.classList.add("status-failed");
     } else if (status === "success") {
-      statusPill.textContent = "Ready";
+      statusPill.textContent = "Success";
       statusPill.classList.add("status-success");
     } else {
       statusPill.textContent = "In Progress";
@@ -908,7 +760,7 @@
     if (!clarifications || !clarifications.length) {
       clarificationSection.style.display = "none";
       clarificationList.innerHTML = "";
-      if (feedbackInputEl) feedbackInputEl.value = "";
+      feedbackInputEl.value = "";
       return;
     }
     clarificationSection.style.display = "block";
@@ -920,6 +772,7 @@
     });
   }
 
+  // Helper: render markdown if possible, else plain text
   function renderMarkdown(targetEl, markdown) {
     if (window.marked && typeof marked.parse === "function") {
       targetEl.innerHTML = marked.parse(markdown);
@@ -950,10 +803,9 @@
     }
 
     setLoading(true);
-    btnLabel.textContent = "Running risk orchestration…";
+    btnLabel.textContent = "Running Orchestrator…";
     renderMarkdown(summaryText, "_Analyzing with orchestrator agents…_");
     setStatusPill("in_progress");
-    updateProgress(1);
 
     const payload = {
       project_description: projectText,
@@ -971,21 +823,22 @@
 
       if (!res.ok) {
         setStatusPill("failed");
-        updateProgress(1);
         summaryText.textContent =
           "Error: " + (data.message || "Unknown error") +
           (data.errors ? "\n\nDetails: " + data.errors.join("; ") : "");
         showClarification(null);
-        btnLabel.textContent = "Run Risk Review";
+        btnLabel.textContent = "Analyze Risk";
         return;
       }
 
+      // Update status pill from orchestrator
       setStatusPill(data.status || "in_progress");
 
       const report = data.risk_analysis_report || null;
       let needsHuman = false;
       let clarifications = [];
 
+      // Detect human-in-the-loop requirement based on risk_analysis_report.human_input
       if (report && typeof report === "object") {
         if (report.human_input === true) {
           needsHuman = true;
@@ -995,19 +848,20 @@
         }
       }
 
-      if (data.status === "failed") {
-        const errorMarkdown =
-          "**Validation failed.**\n\n" +
-          (data.message || "") +
-          (data.errors && data.errors.length
-            ? "\n\n**Details:**\n" + data.errors.map(e => `- ${e}`).join("\n")
-            : "");
+ if (data.status === "failed") {
+  // Validation or input-level failure
+  const errorMarkdown =
+    "**Validation failed.**\n\n" +
+    (data.message || "") +
+    (data.errors && data.errors.length
+      ? "\n\n**Details:**\n" + data.errors.map(e => `- ${e}`).join("\n")
+      : "");
 
-        renderMarkdown(summaryText, errorMarkdown);
-        showClarification(null);
-        updateProgress(1);
-        btnLabel.textContent = "Run Risk Review";
-      } else if (needsHuman) {
+    renderMarkdown(summaryText, errorMarkdown);
+    showClarification(null);
+    btnLabel.textContent = "Analyze Risk";
+    } else if (needsHuman) {
+        // Human-in-loop step: show questions and keep summary as guidance
         showClarification(clarifications);
         renderMarkdown(
           summaryText,
@@ -1015,11 +869,11 @@
           (clarifications.length
             ? "The risk analysis agent needs more information:\n\n" +
               clarifications.map((c, i) => `${i + 1}. ${c}`).join("\n")
-            : "Please provide additional details in the clarification box and rerun the analysis.")
+            : "Please provide additional details in the clarification box and re-run analysis.")
         );
-        updateProgress(2);
-        btnLabel.textContent = "Submit Clarifications & Rerun";
+        btnLabel.textContent = "Submit Clarifications & Re-Analyze";
       } else {
+        // No further human input required: show final summary
         showClarification(null);
 
         const summary =
@@ -1028,16 +882,15 @@
             ? JSON.stringify(report, null, 2)
             : data.message || "No summary available.");
 
+        // Render final summary as markdown for readability
         renderMarkdown(summaryText, summary);
 
-        updateProgress(3);
-        setStatusPill("success");
-        btnLabel.textContent = "Run Risk Review";
+        btnLabel.textContent = "Analyze Risk";
+        // clear feedback for next run
         if (feedbackInputEl) feedbackInputEl.value = "";
       }
     } catch (e) {
       setStatusPill("failed");
-      updateProgress(1);
       summaryText.textContent = "Request failed: " + e.message;
     } finally {
       setLoading(false);

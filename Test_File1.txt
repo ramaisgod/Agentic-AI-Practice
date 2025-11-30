@@ -1,0 +1,30 @@
+Project Name: Smart Inventory Automation System
+
+Project Description:
+The client requires development of an automated inventory tracking platform for 64 warehouse locations across India. The system must integrate with existing SAP modules, generate predictive restocking alerts, and include handheld scanner support. The project involves mobile app development, backend API integration, cloud hosting, and security compliance with ISO 27001. 
+
+Scope of Work:
+- Develop Android app for warehouse operators
+- Create backend microservices in Python / FastAPI
+- Real-time sync with SAP ECC
+- Implement predictive analytics using ML forecasting
+- Role-based access control
+- Detailed audit logs
+
+Timeline:
+Project duration is 9 months. Phase 1 (M1–M3): Architecture, API layer, and SAP integration. Phase 2 (M4–M7): App development & field testing. Phase 3 (M8–M9): Security testing & production rollout.
+
+Dependencies:
+- SAP team availability for API sandbox access
+- Vendor must coordinate with 3rd-party hardware suppliers
+
+Risks Known:
+- Delay in hardware delivery
+- Incomplete SAP documentation
+- High dependency on client’s infra approval
+
+Budget:
+INR 1.8 Crore (fixed bid)
+
+Stakeholders:
+Client IT Director, SAP Team Lead, Warehouse Managers, Vendor Project Manager.
