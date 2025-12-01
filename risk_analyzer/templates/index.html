@@ -382,8 +382,9 @@
       border-radius: 999px;
       border: 1px solid rgba(209,213,219,0.9);
       font-size: 0.8rem;
-      background: #ffffff;
+      background: Green;
       color: var(--text-main);
+      color: white;
       transition: background 0.15s ease, transform 0.08s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .file-button-icon {
@@ -396,6 +397,7 @@
       justify-content: center;
       font-size: 10px;
       color: var(--accent-strong);
+      color: white;
     }
     .file-button:hover {
       background: #f9fafb;
@@ -748,8 +750,7 @@
               <div class="file-row">
                 <div class="file-input-wrapper">
                   <div class="file-button">
-                    <div class="file-button-icon">↑</div>
-                    <span>Attach contract file</span>
+                    <span>Upload Document</span>
                   </div>
                   <input
                     type="file"
@@ -829,6 +830,7 @@
     </div>
   </div>
 
+
 <script>
   const btn = document.getElementById("analyzeBtn");
   const btnLabel = document.getElementById("btnLabel");
@@ -840,7 +842,6 @@
   const summaryText = document.getElementById("summaryText");
   const statusPill = document.getElementById("statusPill");
   const fileInputEl = document.getElementById("descriptionFile");
-  const summaryBox = document.getElementById("summaryBox");
   const progressSteps = document.querySelectorAll(".progress-step");
 
   function updateProgress(step) {
@@ -856,7 +857,7 @@
   }
   updateProgress(1);
 
-  // ---- File upload handler ----
+  // File upload (unchanged)
   fileInputEl.addEventListener("change", async () => {
     const file = fileInputEl.files[0];
     if (!file) return;
@@ -950,10 +951,10 @@
     }
 
     setLoading(true);
-    btnLabel.textContent = "Running risk orchestration…";
-    renderMarkdown(summaryText, "_Analyzing with orchestrator agents…_");
     setStatusPill("in_progress");
     updateProgress(1);
+    renderMarkdown(summaryText, "_Analyzing with orchestrator agents…_");
+    btnLabel.textContent = "Running risk orchestration…";
 
     const payload = {
       project_description: projectText,
@@ -969,76 +970,59 @@
 
       const data = await res.json();
 
-      if (!res.ok) {
+      // Handle validation / failure
+      if (!res.ok || data.status === "failed") {
         setStatusPill("failed");
         updateProgress(1);
-        summaryText.textContent =
-          "Error: " + (data.message || "Unknown error") +
-          (data.errors ? "\n\nDetails: " + data.errors.join("; ") : "");
-        showClarification(null);
-        btnLabel.textContent = "Run Risk Review";
-        return;
-      }
-
-      setStatusPill(data.status || "in_progress");
-
-      const report = data.risk_analysis_report || null;
-      let needsHuman = false;
-      let clarifications = [];
-
-      if (report && typeof report === "object") {
-        if (report.human_input === true) {
-          needsHuman = true;
-          clarifications = Array.isArray(report.clarification)
-            ? report.clarification
-            : [];
-        }
-      }
-
-      if (data.status === "failed") {
         const errorMarkdown =
           "**Validation failed.**\n\n" +
           (data.message || "") +
           (data.errors && data.errors.length
             ? "\n\n**Details:**\n" + data.errors.map(e => `- ${e}`).join("\n")
             : "");
-
         renderMarkdown(summaryText, errorMarkdown);
         showClarification(null);
-        updateProgress(1);
         btnLabel.textContent = "Run Risk Review";
-      } else if (needsHuman) {
+        return;
+      }
+
+      // Human-in-the-loop case
+      if (
+        data.status === "in_progress" &&
+        data.risk_analysis_report &&
+        data.risk_analysis_report.human_input === true
+      ) {
+        const clarifications = Array.isArray(data.risk_analysis_report.clarification)
+          ? data.risk_analysis_report.clarification
+          : [];
         showClarification(clarifications);
         renderMarkdown(
           summaryText,
           "### Clarification required\n\n" +
-          (clarifications.length
-            ? "The risk analysis agent needs more information:\n\n" +
-              clarifications.map((c, i) => `${i + 1}. ${c}`).join("\n")
-            : "Please provide additional details in the clarification box and rerun the analysis.")
+            (clarifications.length
+              ? "The risk analysis agent needs more information:\n\n" +
+                clarifications.map((c, i) => `${i + 1}. ${c}`).join("\n")
+              : "Please provide additional details in the clarification box and rerun the analysis.")
         );
         updateProgress(2);
+        setStatusPill("in_progress");
         btnLabel.textContent = "Submit Clarifications & Rerun";
-      } else {
-        showClarification(null);
-
-        const summary =
-          data.summary ||
-          (report && typeof report === "object"
-            ? JSON.stringify(report, null, 2)
-            : data.message || "No summary available.");
-
-        renderMarkdown(summaryText, summary);
-
-        updateProgress(3);
-        setStatusPill("success");
-        btnLabel.textContent = "Run Risk Review";
-        if (feedbackInputEl) feedbackInputEl.value = "";
+        return;
       }
+
+      // Success path
+      renderMarkdown(summaryText, data.summary || "No summary available.");
+      setStatusPill("success");
+      updateProgress(3);
+      btnLabel.textContent = "Run Risk Review";
+      if (feedbackInputEl) feedbackInputEl.value = "";
+      showClarification(null);
+
     } catch (e) {
       setStatusPill("failed");
       updateProgress(1);
       summaryText.textContent = "Request failed: " + e.message;
+      btnLabel.textContent = "Run Risk Review";
     } finally {
       setLoading(false);
     }
