@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Icertis – AI Risk Orchestrator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-soft: #f9fafb;
+      --border-subtle: rgba(148,163,184,0.5);
+      --accent: #2563eb;
+      --accent-soft: rgba(37,99,235,0.06);
+      --accent-strong: #1d4ed8;
+      --text-main: #020617;
+      --text-muted: #6b7280;
+      --text-soft: #9ca3af;
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top, #ffffff 0, #e5f0ff 45%, #e5e7eb 100%);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(229,231,235,0.6) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(229,231,235,0.6) 1px, transparent 1px);
+      background-size: 64px 64px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* ====================== SHELL LAYOUT ====================== */
+
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      max-width: 1440px;
+      margin: 0 auto;
+      background: transparent;
+    }
+
+    /* Sidebar (ChatGPT-like) */
+    .sidebar {
+      width: 240px;
+      padding: 16px 12px 16px;
+      border-right: 1px solid rgba(209,213,219,0.9);
+      background: linear-gradient(180deg, #f9fafb 0, #f3f4f6 40%, #eef2ff 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        display: none;
+      }
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(209,213,219,0.9);
+      box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    }
+
+    .sidebar-logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #eff6ff 0, #93c5fd 45%, #1d4ed8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #020617;
+      box-shadow: 0 6px 18px rgba(37,99,235,0.4);
+    }
+
+    .sidebar-title-main {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .sidebar-title-sub {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+    }
+
+    .sidebar-new {
+      border-radius: 999px;
+      padding: 8px 10px;
+      border: 1px solid rgba(209,213,219,0.9);
+      background: #ffffff;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(15,23,42,0.05);
+      transition: transform 0.08s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+
+    .sidebar-new span:first-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sidebar-new-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #111827;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .sidebar-new:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37,99,235,0.7);
+      box-shadow: 0 12px 28px rgba(37,99,235,0.2);
+    }
+
+    .sidebar-section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin: 4px 4px 6px;
+    }
+
+    .sidebar-empty {
+      margin: 0 4px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px dashed rgba(209,213,219,0.9);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ====================== MAIN CHAT AREA ====================== */
+
+    .chat-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      backdrop-filter: blur(6px);
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px 10px;
+      border-bottom: 1px solid rgba(209,213,219,0.9);
+      background: rgba(250,250,251,0.96);
+      backdrop-filter: blur(18px);
+    }
+
+    .chat-header-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      height: 28px;
+      width: auto;
+    }
+
+    .app-title {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-pill {
+      border-radius: 999px;
+      border: 1px solid rgba(209,213,219,0.9);
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      white-space: nowrap;
+      box-shadow: 0 6px 16px rgba(15,23,42,0.06);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(34,197,94,0.65);
+      animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes ping {
+      0% { transform: scale(1); opacity: 0.9; }
+      70% { transform: scale(1.9); opacity: 0; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 24px 0;
+      min-height: 0;
+    }
+
+    .chat-welcome {
+      text-align: center;
+      padding: 18px 16px 10px;
+      color: var(--text-main);
+    }
+
+    .chat-welcome-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+
+    .chat-welcome-subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .chat-window {
+      flex: 1;
+      max-width: 760px;
+      margin: 10px auto 0;
+      padding: 0 4px 16px;
+      overflow-y: auto;
+    }
+
+    .chat-window::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-window::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .chat-window::-webkit-scrollbar-thumb {
+      background: rgba(148,163,184,0.8);
+      border-radius: 999px;
+    }
+
+    .chat-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .chat-message--assistant {
+      justify-content: flex-start;
+    }
+
+    .chat-message--user {
+      justify-content: flex-end;
+    }
+
+    .chat-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .chat-avatar-assistant {
+      background: radial-gradient(circle at 30% 20%, #eff6ff 0, #93c5fd 40%, #1d4ed8 100%);
+      box-shadow: 0 10px 24px rgba(37,99,235,0.35);
+      border: 1px solid rgba(239,246,255,0.9);
+      color: #020617;
+      font-weight: 700;
+    }
+
+    .chat-avatar-user {
+      background: radial-gradient(circle at 30% 20%, #fed7aa 0, #fdba74 40%, #f97316 100%);
+      box-shadow: 0 10px 24px rgba(248,113,113,0.25);
+      border: 1px solid rgba(254,243,199,0.9);
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      border-radius: 18px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.06);
+      position: relative;
+      background: var(--surface);
+    }
+
+    .chat-message--assistant .chat-bubble {
+      border: 1px solid rgba(209,213,219,0.9);
+    }
+
+    .chat-message--user .chat-bubble {
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: #f9fafb;
+      border: 1px solid rgba(15,23,42,0.95);
+    }
+
+    .chat-bubble h1, .chat-bubble h2, .chat-bubble h3 {
+      margin: 0.35rem 0 0.2rem;
+      font-size: 0.98rem;
+    }
+
+    .chat-bubble p {
+      margin: 0.15rem 0;
+    }
+
+    .chat-bubble ul,
+    .chat-bubble ol {
+      margin: 0.2rem 0 0.35rem 1.1rem;
+      padding-left: 1rem;
+    }
+
+    .chat-bubble code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.78rem;
+      background: #e5e7eb;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .chat-message--welcome .chat-bubble {
+      background: #f9fafb;
+      border: 1px solid rgba(191,219,254,0.9);
+      box-shadow: 0 20px 50px rgba(59,130,246,0.25);
+    }
+
+    /* ====================== COMPOSER (ChatGPT-like) ====================== */
+
+    .chat-composer {
+      padding: 10px 24px 20px;
+      border-top: 1px solid rgba(209,213,219,0.9);
+      background: linear-gradient(180deg, rgba(250,250,251,0.98), rgba(243,244,246,0.96));
+    }
+
+    #riskForm {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .composer-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 4px 6px 4px 10px;
+      background: #ffffff;
+      border: 1px solid rgba(209,213,219,0.95);
+      box-shadow: 0 12px 34px rgba(15,23,42,0.12);
+    }
+
+    .composer-pill-left {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(209,213,219,0.9);
+      background: #f9fafb;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #4b5563;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.12s ease;
+    }
+
+    .composer-pill-left:hover {
+      background: #eef2ff;
+      box-shadow: 0 6px 18px rgba(59,130,246,0.28);
+      transform: translateY(-1px);
+    }
+
+    .composer-input-wrap {
+      flex: 1;
+    }
+
+    .composer-input-wrap textarea {
+      width: 100%;
+      max-height: 92px;
+      min-height: 32px;
+      border: none;
+      outline: none;
+      resize: none;
+      font-size: 0.9rem;
+      padding: 7px 0 6px;
+      color: var(--text-main);
+      background: transparent;
+    }
+
+    .composer-input-wrap textarea::placeholder {
+      color: rgba(156,163,175,0.95);
+    }
+
+    .composer-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .composer-icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #4b5563;
+      font-size: 1.1rem;
+      transition: background 0.12s ease, transform 0.06s ease, color 0.12s ease;
+    }
+
+    .composer-icon-btn:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+      color: #111827;
+    }
+
+    /* Main send button */
+    #analyzeBtn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: none;
+      background: #111827;
+      color: #f9fafb;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow:
+        0 16px 40px rgba(15,23,42,0.35),
+        0 0 0 1px rgba(15,23,42,0.95);
+      transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.08s ease;
+      position: relative;
+    }
+
+    #analyzeBtn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: #020617;
+      box-shadow:
+        0 18px 50px rgba(15,23,42,0.5),
+        0 0 0 1px rgba(15,23,42,1);
+    }
+
+    #analyzeBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: 0 0 0 1px rgba(209,213,219,0.9);
+      background: #4b5563;
+    }
+
+    #btnLabel {
+      display: none; /* visually hidden, JS will still update text */
+    }
+
+    .btn-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(248,250,252,0.95);
+      border-top-color: rgba(15,23,42,0.7);
+      animation: spin 0.9s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* tiny caption under composer */
+    .composer-caption {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 2px 6px 0;
+    }
+
+    .pill-muted {
+      border-radius: 999px;
+      border: 1px dashed rgba(209,213,219,0.9);
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      background: #f9fafb;
+    }
+
+    /* Hidden clarification section (kept for compatibility) */
+    .clarification-section {
+      display: none !important;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      cursor: pointer;
+    }
+
+    .file-button-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #111827;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: #f9fafb;
+    }
+
+    .file-button span:last-child {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+    }
+
+    /* ====================== RIGHT RAIL (Workflow + Summary) ====================== */
+
+    .right-rail {
+      width: 320px;
+      border-left: 1px solid rgba(209,213,219,0.9);
+      background: linear-gradient(180deg, #f9fafb 0, #eff6ff 35%, #eef2ff 100%);
+      padding: 14px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (max-width: 1200px) {
+      .right-rail {
+        display: none;
+      }
+    }
+
+    .rail-card {
+      border-radius: 18px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid rgba(209,213,219,0.95);
+      box-shadow: 0 12px 40px rgba(15,23,42,0.08);
+      padding: 12px 10px 12px;
+    }
+
+    .rail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .rail-title {
+      font-size: 0.86rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rail-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid transparent;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .status-failed {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    .status-success {
+      background: #ecfdf3;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .status-progress {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    /* Progress steps */
+    .progress-wrapper {
+      margin-bottom: 8px;
+    }
+
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 6px;
+      position: relative;
+      padding: 6px 4px 4px;
+    }
+
+    .progress-steps::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background: #e5e7eb;
+      z-index: 0;
+    }
+
+    .progress-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      margin: 0 auto 3px;
+      border: 2px solid #e5e7eb;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .progress-label {
+      font-size: 0.72rem;
+      color: var(--text-soft);
+      white-space: nowrap;
+    }
+
+    .progress-step.is-active .progress-dot {
+      border-color: var(--accent);
+      background: #eff6ff;
+      color: var(--accent-strong);
+      box-shadow: 0 0 0 3px rgba(191,219,254,0.9);
+    }
+
+    .progress-step.is-active .progress-label {
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+
+    .progress-step.is-done .progress-dot {
+      border-color: var(--success);
+      background: #ecfdf3;
+      color: #16a34a;
+    }
+
+    .progress-step.is-done .progress-label {
+      color: #15803d;
+    }
+
+    .result-box {
+      margin-top: 4px;
+      max-height: 360px;
+      overflow: auto;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 9px;
+      border: 1px solid #e5e7eb;
+      font-size: 0.84rem;
+      box-shadow: inset 0 0 0 1px rgba(243,244,246,0.9);
+    }
+
+    .result-box::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .result-box::-webkit-scrollbar-track {
+      background: #f3f4f6;
+    }
+
+    .result-box::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 999px;
+    }
+
+    .summary-markup {
+      font-size: 0.87rem;
+      line-height: 1.5;
+      color: var(--text-main);
+    }
+
+    .summary-markup h1,
+    .summary-markup h2,
+    .summary-markup h3 {
+      margin: 0.4rem 0 0.3rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .summary-markup ul,
+    .summary-markup ol {
+      margin: 0.2rem 0 0.4rem 1.2rem;
+      padding-left: 1.1rem;
+    }
+
+    .summary-markup li {
+      margin-bottom: 0.15rem;
+    }
+
+    .summary-markup p {
+      margin: 0.25rem 0;
+    }
+
+    .summary-markup code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #e5e7eb;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .summary-loading {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(209,213,219,0.5) 40%,
+        transparent 80%
+      );
+      animation: shimmer 0.7s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AI</div>
+        <div>
+          <div class="sidebar-title-main">Risk Orchestrator</div>
+          <div class="sidebar-title-sub">Icertis · Internal preview</div>
+        </div>
+      </div>
+
+      <button class="sidebar-new" type="button" onclick="window.location.reload()">
+        <span><span class="sidebar-new-icon">+</span> New analysis</span>
+        <span style="font-size:0.7rem;color:#9ca3af;">Ctrl + N</span>
+      </button>
+
+      <div>
+        <div class="sidebar-section-label">Recent analyses</div>
+        <div class="sidebar-empty">
+          Recent runs will appear here once you start using the orchestrator.
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main chat -->
+    <main class="chat-shell">
+      <header class="chat-header">
+        <div class="chat-header-main">
+          <img
+            src="{{ url_for('static', filename='icertis-logo.svg') }}"
+            alt="Icertis Logo"
+            class="brand-logo"
+          />
+          <div class="app-title">
+            AI-Powered Risk Orchestrator
+            <span id="statusPill" class="status-pill status-progress" style="display:none;"></span>
+          </div>
+        </div>
+        <div class="badge-pill">
+          <span class="badge-dot"></span>
+          Multi-agent · Human-in-loop
+        </div>
+      </header>
+
+      <section class="chat-main">
+        <div class="chat-welcome">
+          <h2 class="chat-welcome-title">What risk are we analyzing today?</h2>
+          <p class="chat-welcome-subtitle">
+            Describe your project or contract in natural language, or upload a document.
+            The orchestrator will classify risks, surface gaps, and ask for clarifications when needed.
+          </p>
+        </div>
+
+        <div id="chatWindow" class="chat-window">
+          <!-- Initial assistant message -->
+          <div class="chat-message chat-message--assistant chat-message--welcome">
+            <div class="chat-avatar chat-avatar-assistant">AI</div>
+            <div class="chat-bubble">
+              <p><strong>Hi, I’m your AI Risk Orchestrator.</strong></p>
+              <p>
+                Paste a contract or project description, or upload a <code>.docx</code>,
+                <code>.pdf</code>, or <code>.txt</code> file. I’ll analyze risks, highlight gaps,
+                and ask for clarifications where needed.
+              </p>
+              <p style="font-size:0.8rem; opacity:0.85;">
+                Example: “Our go-live depends on a new vendor API which has been unstable in testing.
+                If it fails in production, we have no rollback plan and tight customer SLAs.”
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Composer -->
+      <div class="chat-composer">
+        <form id="riskForm" enctype="multipart/form-data" onsubmit="return false;">
+          <div class="composer-bar">
+            <div class="composer-pill-left" id="plusButton" title="More tools">
+              +
+            </div>
+
+            <div class="composer-input-wrap">
+              <textarea
+                id="projectDescription"
+                name="project_description"
+                placeholder="Ask anything about your contract, or paste a project risk description…"></textarea>
+            </div>
+
+            <div class="composer-right">
+              <!-- mic icon (placeholder) -->
+              <button type="button" class="composer-icon-btn" title="Voice (coming soon)">
+                🎤
+              </button>
+
+              <!-- main send / analyze button -->
+              <button id="analyzeBtn" type="button" title="Send & analyze">
+                <div class="btn-icon" id="btnSpinner"></div>
+                <span id="btnLabel">Send & Analyze</span>
+                <!-- simple arrow icon -->
+                <span style="font-size:0.9rem;position:absolute;">➤</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="composer-caption">
+            <div class="file-input-wrapper">
+              <button type="button" class="file-button">
+                <span class="file-button-icon">📄</span>
+                <span>Upload contract</span>
+              </button>
+              <input
+                type="file"
+                id="descriptionFile"
+                name="description_file"
+                accept=".txt,.pdf,.doc,.docx" />
+            </div>
+            <div class="pill-muted">
+              Your message is treated as the base description or as clarification based on workflow stage.
+            </div>
+          </div>
+
+          <!-- Hidden clarification block (for compatibility with existing backend) -->
+          <div id="clarificationSection" class="clarification-section">
+            <ul id="clarificationList" class="clarification-list"></ul>
+            <textarea id="feedbackInput" name="feedback"></textarea>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <!-- Right rail -->
+    <aside class="right-rail">
+      <div class="rail-card">
+        <div class="rail-header">
+          <div>
+            <div class="rail-title">Workflow status</div>
+            <div class="rail-subtitle">Track where the orchestrator is in the pipeline.</div>
+          </div>
+          <span id="statusPillClone" class="status-pill" style="display:none;">Ready</span>
+        </div>
+
+        <div class="progress-wrapper">
+          <div class="progress-steps">
+            <div class="progress-step" data-step="1">
+              <div class="progress-dot">1</div>
+              <div class="progress-label">Input & Validation</div>
+            </div>
+            <div class="progress-step" data-step="2">
+              <div class="progress-dot">2</div>
+              <div class="progress-label">Risk Analysis</div>
+            </div>
+            <div class="progress-step" data-step="3">
+              <div class="progress-dot">3</div>
+              <div class="progress-label">Final Summary</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px;font-size:0.8rem;color:var(--text-soft);">
+          Each run may loop through multiple clarifications before producing the final brief.
+        </div>
+      </div>
+
+      <div class="rail-card">
+        <div class="rail-header">
+          <div class="rail-title">Latest assistant summary</div>
+        </div>
+        <div id="summaryBox" class="result-box">
+          <div id="summaryText" class="summary-markup">Waiting for your first message…</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const btn = document.getElementById("analyzeBtn");
+    const btnLabel = document.getElementById("btnLabel");
+    const btnSpinner = document.getElementById("btnSpinner");
+    const projectDescriptionEl = document.getElementById("projectDescription");
+    const feedbackInputEl = document.getElementById("feedbackInput");
+    const clarificationSection = document.getElementById("clarificationSection");
+    const clarificationList = document.getElementById("clarificationList");
+    const summaryText = document.getElementById("summaryText");
+    const statusPill = document.getElementById("statusPill");
+    const statusPillClone = document.getElementById("statusPillClone");
+    const fileInputEl = document.getElementById("descriptionFile");
+    const progressSteps = document.querySelectorAll(".progress-step");
+    const chatWindow = document.getElementById("chatWindow");
+    const plusButton = document.getElementById("plusButton");
+
+    let awaitingClarification = false;
+    let lastProjectDescription = "";
+
+    function updateProgress(step) {
+      progressSteps.forEach(s => {
+        const num = Number(s.dataset.step);
+        s.classList.remove("is-active", "is-done");
+        if (num < step) s.classList.add("is-done");
+        else if (num === step) s.classList.add("is-active");
+      });
+    }
+    updateProgress(1);
+
+    function scrollChatToBottom() {
+      if (!chatWindow) return;
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function renderMarkdown(targetEl, markdown) {
+      if (!targetEl) return;
+      if (window.marked && typeof marked.parse === "function") {
+        targetEl.innerHTML = marked.parse(markdown);
+      } else {
+        targetEl.textContent = markdown;
+      }
+    }
+
+    function appendMessage(role, markdown) {
+      if (!chatWindow) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = `chat-message chat-message--${role}`;
+
+      const avatar = document.createElement("div");
+      avatar.classList.add("chat-avatar");
+      if (role === "assistant") {
+        avatar.classList.add("chat-avatar-assistant");
+        avatar.textContent = "AI";
+      } else {
+        avatar.classList.add("chat-avatar-user");
+        avatar.textContent = "You";
+      }
+
+      const bubble = document.createElement("div");
+      bubble.classList.add("chat-bubble");
+      if (window.marked && typeof marked.parse === "function") {
+        bubble.innerHTML = marked.parse(markdown);
+      } else {
+        bubble.textContent = markdown;
+      }
+
+      if (role === "assistant") {
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+      } else {
+        wrapper.appendChild(bubble);
+        wrapper.appendChild(avatar);
+      }
+
+      chatWindow.appendChild(wrapper);
+      scrollChatToBottom();
+    }
+
+    function setStatusPill(status) {
+      [statusPill, statusPillClone].forEach(el => {
+        if (!el) return;
+        el.style.display = status ? "inline-block" : "none";
+        el.className = "status-pill";
+        if (!status) return;
+        if (status === "failed") {
+          el.textContent = "Failed";
+          el.classList.add("status-failed");
+        } else if (status === "success") {
+          el.textContent = "Ready";
+          el.classList.add("status-success");
+        } else {
+          el.textContent = "In Progress";
+          el.classList.add("status-progress");
+        }
+      });
+    }
+
+    function showClarification(clarifications) {
+      if (!clarifications || !clarifications.length) {
+        if (clarificationSection) clarificationSection.style.display = "none";
+        if (clarificationList) clarificationList.innerHTML = "";
+        if (feedbackInputEl) feedbackInputEl.value = "";
+        awaitingClarification = false;
+        return;
+      }
+
+      awaitingClarification = true;
+      if (clarificationList) {
+        clarificationList.innerHTML = "";
+        clarifications.forEach(q => {
+          const li = document.createElement("li");
+          li.textContent = q;
+          clarificationList.appendChild(li);
+        });
+      }
+
+      const md =
+        "### Clarification required\n\n" +
+        (clarifications.length
+          ? "The risk analysis agent needs more information:\n\n" +
+            clarifications.map((c, i) => `${i + 1}. ${c}`).join("\n") +
+            "\n\nReply in the chat box with your answers, then press **Send & Analyze** again."
+          : "Please provide additional details in your next message and press **Send & Analyze** again.");
+
+      appendMessage("assistant", md);
+    }
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        btn.disabled = true;
+        btnSpinner.style.display = "inline-block";
+        summaryText.classList.add("summary-loading");
+      } else {
+        btn.disabled = false;
+        btnSpinner.style.display = "none";
+        summaryText.classList.remove("summary-loading");
+      }
+    }
+
+    // Plus button → trigger file upload (like ChatGPT more tools)
+    plusButton.addEventListener("click", () => {
+      fileInputEl.click();
+    });
+
+    // File upload
+    fileInputEl.addEventListener("change", async () => {
+      const file = fileInputEl.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("description_file", file);
+
+      try {
+        setLoading(true);
+        const res = await fetch("/upload_contract", { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (!res.ok || data.status !== "success") {
+          alert("File upload failed: " + (data.message || "Unknown error"));
+          return;
+        }
+
+        const text = data.project_description || "";
+        if (text) {
+          projectDescriptionEl.value = text;
+          appendMessage(
+            "assistant",
+            `I’ve extracted text from your uploaded file **${file.name}**.\n\nYou can review or edit it in the input box, then press **Send & Analyze** to start the risk review.`
+          );
+        }
+      } catch (e) {
+        alert("Upload error: " + e.message);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Main send button
+    btn.addEventListener("click", async () => {
+      const rawText = projectDescriptionEl.value.trim();
+      if (!rawText) {
+        alert("Please type a description or clarification before sending.");
+        return;
+      }
+
+      let projectTextToSend = "";
+      let feedbackTextToSend = "";
+
+      if (!awaitingClarification || !lastProjectDescription) {
+        lastProjectDescription = rawText;
+        projectTextToSend = rawText;
+        feedbackTextToSend = "";
+      } else {
+        projectTextToSend = lastProjectDescription;
+        feedbackTextToSend = rawText;
+      }
+
+      appendMessage("user", rawText);
+      projectDescriptionEl.value = "";
+
+      setLoading(true);
+      setStatusPill("in_progress");
+      updateProgress(1);
+      renderMarkdown(summaryText, "_Analyzing with orchestrator agents…_");
+      btnLabel.textContent = "Running risk orchestration…";
+
+      const payload = {
+        project_description: projectTextToSend,
+        feedback: feedbackTextToSend || ""
+      };
+
+      try {
+        const res = await fetch("/analyze_contract_risk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        // Validation / failure
+        if (!res.ok || data.status === "failed") {
+          setStatusPill("failed");
+          updateProgress(1);
+          awaitingClarification = false;
+
+          const errorMarkdown =
+            "**Validation failed.**\n\n" +
+            (data.message || "") +
+            (data.errors && data.errors.length
+              ? "\n\n**Details:**\n" + data.errors.map(e => `- ${e}`).join("\n")
+              : "");
+
+          renderMarkdown(summaryText, errorMarkdown);
+          appendMessage("assistant", errorMarkdown);
+          btnLabel.textContent = "Send & Analyze";
+          return;
+        }
+
+        // Human-in-the-loop
+        if (
+          data.status === "in_progress" &&
+          data.risk_analysis_report &&
+          data.risk_analysis_report.human_input === true
+        ) {
+          const clarifications = Array.isArray(data.risk_analysis_report.clarification)
+            ? data.risk_analysis_report.clarification
+            : [];
+
+          showClarification(clarifications);
+          renderMarkdown(
+            summaryText,
+            "### Clarification required\n\n" +
+              (clarifications.length
+                ? "The risk analysis agent needs more information:\n\n" +
+                  clarifications.map((c, i) => `${i + 1}. ${c}`).join("\n")
+                : "Please provide additional details in your next message.")
+          );
+          updateProgress(2);
+          setStatusPill("in_progress");
+          btnLabel.textContent = "Send & Analyze";
+          return;
+        }
+
+        // Success
+        const finalSummary = data.summary || "No summary available.";
+        renderMarkdown(summaryText, finalSummary);
+        appendMessage("assistant", finalSummary);
+
+        setStatusPill("success");
+        updateProgress(3);
+        btnLabel.textContent = "Send & Analyze";
+        awaitingClarification = false;
+        if (feedbackInputEl) feedbackInputEl.value = "";
+        showClarification(null);
+      } catch (e) {
+        setStatusPill("failed");
+        updateProgress(1);
+        const errText = "Request failed: " + e.message;
+        renderMarkdown(summaryText, errText);
+        appendMessage("assistant", errText);
+        btnLabel.textContent = "Send & Analyze";
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
