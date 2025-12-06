@@ -79,6 +79,64 @@
       padding: 0 4px 8px 4px;
     }
 
+/* Sidebar brand logo block */
+.sidebar-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 10px 6px;
+}
+
+.sidebar-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #111827, #4b5563);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.sidebar-brand-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sidebar-brand-subtitle {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* Brand logo wrapper above "New chat" */
+.sidebar-brand-logo-wrap {
+  padding: 4px 6px 10px 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Actual SVG logo */
+.sidebar-logo-img {
+  max-width: 90px;   /* adjust as you like: 120–160 works well */
+  height: auto;
+  display: block;
+}
+
+.sidebar-brand-logo-wrap {
+  justify-content: flex-start;
+}
+
     .nav-btn {
       text-align: left;
       padding: 9px 10px;
@@ -743,33 +801,45 @@
   <div class="app-shell">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div
-          class="nav-btn w-100 justify-content-between px-2 py-2"
-          id="newChatBtn"
-        >
-          <div class="d-flex align-items-center gap-2">
-            <div
-              style="
-                width: 24px;
-                height: 24px;
-                border: 1px solid #e5e7eb;
-                border-radius: 999px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              "
-            >
-              <i class="fa-solid fa-robot" style="font-size: 12px"></i>
-            </div>
-            <span style="font-weight: 500; font-size: 13px">New chat</span>
-          </div>
-          <i
-            class="fa-regular fa-pen-to-square text-secondary"
-            style="font-size: 13px"
-          ></i>
-        </div>
+<div class="sidebar-header">
+  <!-- Brand logo centered above "New chat" -->
+  <div class="sidebar-brand-logo-wrap">
+    <img
+      class="sidebar-logo-img"
+      src="{{ url_for('static', filename='icertis-logo.svg') }}"
+      alt="Icertis Agents"
+    />
+  </div>
+
+  <!-- New chat button -->
+  <div
+    class="nav-btn w-100 justify-content-between px-2 py-2"
+    id="newChatBtn"
+  >
+    <div class="d-flex align-items-center gap-2">
+      <div
+          style="
+      width: 24px;
+      height: 24px;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    "
+  >
+        <i class="fa-solid fa-atom"></i>
       </div>
+      <span style="font-weight: 500; font-size: 13px">New chat</span>
+    </div>
+    <i
+      class="fa-regular fa-pen-to-square text-secondary"
+      style="font-size: 13px"
+    ></i>
+  </div>
+</div>
+
+
 
       <div class="sidebar-scroll-area">
         <div class="nav-btn">
@@ -834,7 +904,10 @@
         </div>
 
         <div class="top-right">
-          <span class="top-share d-none d-sm-inline">Share</span>
+          <button class="btn top-share d-none d-sm-inline" aria-label="Share">
+            <i class="fa-solid fa-share" aria-hidden="true"></i> Share
+          </button>
+
           <button class="top-icon-btn d-none d-sm-flex" aria-label="Profile">
             <i class="fa-regular fa-user"></i>
           </button>
@@ -897,7 +970,7 @@
           </div>
 
           <div class="input-hint-row">
-            <span>Upload supports .docx, .pdf, .txt</span>
+            <span>You can upload files in .docx, .pdf, or .txt format.</span>
             <span id="inputHintRight">
               Icertis demo · <span class="kbd">Internal</span>
             </span>
