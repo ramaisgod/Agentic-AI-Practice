@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Icertis Agents</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <!-- FontAwesome Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <!-- Markdown renderer (for assistant replies) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    :root {
+      --bg-body: #f3f4f6;
+      --bg-elevated: #ffffff;
+      --border-subtle: #e5e7eb;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --accent: #111827;
+      --accent-soft: #e5e7eb;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.08);
+
+      /* status colors from old page */
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Layout */
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: #f9fafb;
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      padding: 12px 10px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      z-index: 1040;
+    }
+
+    .sidebar-header {
+      padding: 6px 4px 12px 4px;
+    }
+
+    .sidebar-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 4px 8px 4px;
+    }
+
+    /* Sidebar brand logo block */
+    .sidebar-brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 6px 10px 6px;
+    }
+
+    .sidebar-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #111827, #4b5563);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
+    }
+
+    .sidebar-brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .sidebar-brand-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .sidebar-brand-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    /* Brand logo wrapper above "New chat" */
+    .sidebar-brand-logo-wrap {
+      padding: 4px 6px 10px 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Actual SVG logo */
+    .sidebar-logo-img {
+      max-width: 90px;
+      height: auto;
+      display: block;
+    }
+
+    .sidebar-brand-logo-wrap {
+      justify-content: flex-start;
+    }
+
+    .nav-btn {
+      text-align: left;
+      padding: 9px 10px;
+      border-radius: 999px;
+      color: #111827;
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background-color 0.15s ease, border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background-color: #f3f4f6;
+      border-color: #e5e7eb;
+    }
+
+    .nav-btn .chip-kbd {
+      font-size: 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 1px 5px;
+      color: #6b7280;
+      background: #f9fafb;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      padding: 16px 10px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .chat-history-item {
+      font-size: 13px;
+      padding: 6px 10px;
+      color: #374151;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .chat-history-item:hover {
+      background: #f3f4f6;
+    }
+
+    .profile-section {
+      padding: 10px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .user-profile:hover {
+      background-color: #f3f4f6;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      background-color: #111827;
+      color: white;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .upgrade-btn-sidebar {
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      padding: 3px 9px;
+      margin-left: auto;
+      color: #111827;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .upgrade-btn-sidebar:hover {
+      background-color: #111827;
+      color: #f9fafb;
+      border-color: #111827;
+    }
+
+    /* Sidebar mobile behavior */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: none;
+      }
+
+      .sidebar.sidebar-open {
+        transform: translateX(0);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.3);
+      }
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: radial-gradient(circle at top, #f9fafb 0, #f3f4f6 45%, #eef2ff 100%);
+    }
+
+    /* Top bar */
+    .top-bar {
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 58px;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+      backdrop-filter: blur(8px);
+      background: rgba(249, 250, 251, 0.9);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(156, 163, 175, 0.4);
+      font-size: 12px;
+      color: #4b5563;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .model-selector {
+      font-weight: 600;
+      font-size: 14px;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      cursor: pointer;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .top-icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      color: #4b5563;
+      transition: background-color 0.15s ease, border-color 0.15s ease,
+        color 0.15s ease;
+    }
+
+    .top-icon-btn:hover {
+      background-color: #e5e7eb;
+      border-color: #d1d5db;
+      color: #111827;
+    }
+
+    .top-share {
+      color: #6b7280;
+      cursor: pointer;
+    }
+
+    .top-share:hover {
+      color: #111827;
+    }
+
+    .sidebar-toggle-btn {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar-toggle-btn {
+        display: inline-flex;
+      }
+      .brand-pill {
+        display: none;
+      }
+    }
+
+    /* Chat log */
+    .chat-log {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 18px 0 0 0;
+      width: 100%;
+    }
+
+    .chat-inner {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0 16px 24px 16px;
+    }
+
+    /* Hero */
+    .greeting-wrapper {
+      text-align: center;
+      padding: 90px 12px 40px 12px;
+    }
+
+    .hero-title {
+      font-size: 2.9rem;
+      margin: 0;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      background: linear-gradient(
+        135deg,
+        Red,
+        Blue,
+        Green,
+        Yellow,
+        Cyan
+      );
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gradientFlow 3s ease infinite;
+    }
+
+    @keyframes gradientFlow {
+      0% {
+        background-position: 0% 0%;
+      }
+      50% {
+        background-position: 100% 100%;
+      }
+      100% {
+        background-position: 0% 0%;
+      }
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-left: 2px;
+      border: 1px solid transparent;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .status-failed {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+    .status-success {
+      background: #ecfdf3;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+    .status-progress {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    /* Messages */
+    .chat-message {
+      display: flex;
+      flex-direction: column;
+      padding: 10px 0;
+    }
+
+    .chat-message + .chat-message {
+      border-top: 1px solid rgba(229, 231, 235, 0.7);
+      margin-top: 4px;
+      padding-top: 14px;
+    }
+
+    .message-row {
+      display: flex;
+      width: 100%;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .message-icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .assistant-message .message-icon {
+      background-color: #111827;
+      font-size: 15px;
+    }
+
+    .user-message .message-icon {
+      background-color: #4b5563;
+    }
+
+    .message-bubble {
+      max-width: min(100%, 620px);
+      border-radius: var(--radius-lg);
+      padding: 9px 13px;
+      font-size: 14px;
+      line-height: 1.6;
+      background-color: var(--bg-elevated);
+      color: var(--text-main);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .assistant-message .message-bubble {
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 18px 18px 18px 4px;
+    }
+
+    .user-message {
+      align-items: flex-end;
+    }
+
+    .user-message .message-row {
+      justify-content: flex-end;
+    }
+
+    .user-message .message-bubble {
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3);
+    }
+
+    .user-message .message-text {
+      white-space: pre-wrap;
+    }
+
+    .assistant-message .message-text {
+      white-space: normal;
+    }
+
+    .reaction-icons {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      margin-left: 42px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .reaction-icons i {
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 999px;
+      transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .reaction-icons i:hover {
+      background-color: #e5e7eb;
+      color: #4b5563;
+    }
+
+    @media (max-width: 768px) {
+      .reaction-icons {
+        margin-left: 40px;
+      }
+    }
+
+    .summary-loading {
+      position: relative;
+      overflow: hidden;
+    }
+    .summary-loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(209, 213, 219, 0.45) 40%,
+        transparent 80%
+      );
+      animation: shimmer 0.7s infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Input area */
+    .input-area-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 260px;
+      right: 0;
+      padding: 14px 0 14px 0;
+      background: linear-gradient(
+        to top,
+        rgba(243, 244, 246, 0.98) 50%,
+        rgba(243, 244, 246, 0.2) 100%
+      );
+      z-index: 30;
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid rgba(209, 213, 219, 0.9);
+      backdrop-filter: blur(10px);
+    }
+
+    .input-container {
+      width: 100%;
+      max-width: 820px;
+      padding: 0 16px;
+      position: relative;
+    }
+
+    .prompt-box {
+      background-color: #f9fafb;
+      border-radius: var(--radius-xl);
+      padding: 10px 72px 10px 44px;
+      min-height: 48px;
+      position: relative;
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease,
+        background-color 0.15s ease;
+    }
+
+    .prompt-box:focus-within {
+      border-color: #111827;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px #111827, 0 10px 30px rgba(15, 23, 42, 0.25);
+    }
+
+    .prompt-textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      resize: none;
+      outline: none;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-main);
+      height: 20px;
+      max-height: 160px;
+      overflow-y: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    .prompt-textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    .input-icon-left {
+      position: absolute;
+      left: 12px;
+      bottom: 9px;
+      font-size: 16px;
+      color: #6b7280;
+      cursor: pointer;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .input-icon-left:hover {
+      background-color: #e5e7eb;
+      color: #111827;
+    }
+
+    .input-actions-right {
+      position: absolute;
+      right: 10px;
+      bottom: 7px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mic-btn {
+      color: #6b7280;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 999px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .mic-btn:hover {
+      background-color: #e5e7eb;
+      color: #111827;
+    }
+
+    .send-btn {
+      background-color: #e5e7eb;
+      color: #9ca3af;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: default;
+      transition: background-color 0.15s ease, color 0.15s ease,
+        transform 0.08s ease, opacity 0.12s ease;
+      opacity: 0.9;
+    }
+
+    .send-btn.active {
+      background-color: #111827;
+      color: white;
+      cursor: pointer;
+      opacity: 1;
+    }
+
+    .send-btn.active:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .input-hint-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      padding: 0 2px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .input-hint-row span.kbd {
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      padding: 1px 5px;
+      font-size: 10px;
+      background: #f9fafb;
+    }
+
+    @media (max-width: 768px) {
+      .input-area-fixed {
+        left: 0;
+        padding: 10px 0 10px 0;
+      }
+      .prompt-box {
+        padding: 10px 64px 10px 40px;
+      }
+      .chat-inner {
+        padding-bottom: 86px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .chat-inner {
+        padding-bottom: 98px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .input-hint-row {
+        font-size: 10px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      body {
+        overflow: hidden;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <!-- Brand logo centered above "New chat" -->
+        <div class="sidebar-brand-logo-wrap">
+          <img
+            class="sidebar-logo-img"
+            src="{{ url_for('static', filename='icertis-logo.svg') }}"
+            alt="Icertis Agents"
+          />
+        </div>
+
+        <!-- New chat button -->
+        <div
+          class="nav-btn w-100 justify-content-between px-2 py-2"
+          id="newChatBtn"
+        >
+          <div class="d-flex align-items-center gap-2">
+            <div
+              style="
+                width: 24px;
+                height: 24px;
+                border: 1px solid #e5e7eb;
+                border-radius: 999px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <i class="fa-solid fa-atom"></i>
+            </div>
+            <span style="font-weight: 500; font-size: 13px">New chat</span>
+          </div>
+          <i
+            class="fa-regular fa-pen-to-square text-secondary"
+            style="font-size: 13px"
+          ></i>
+        </div>
+      </div>
+
+      <div class="sidebar-scroll-area">
+        <div class="nav-btn">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Search chats</span>
+          <span class="chip-kbd ms-auto">Ctrl K</span>
+        </div>
+
+        <div class="nav-btn">
+          <i class="fa-solid fa-folder-open"></i>
+          <span>Projects</span>
+        </div>
+        <div class="nav-btn">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>Library</span>
+        </div>
+
+        <div class="section-label mt-2">Your chats</div>
+
+        <!-- Placeholder static items (you can replace with dynamic list later) -->
+        <div class="chat-history-item" data-thread="">Chatbot UI design</div>
+        <div class="chat-history-item" data-thread="">Centered textarea design</div>
+        <div class="chat-history-item" data-thread="">Code review and fixes</div>
+        <div class="chat-history-item" data-thread="">Risk orchestration workflow</div>
+      </div>
+
+      <div class="profile-section">
+        <div class="user-profile">
+          <div class="avatar">RA</div>
+          <div class="d-flex flex-column" style="line-height: 1.2">
+            <span style="font-size: 13px; font-weight: 500">Ram</span>
+            <span style="font-size: 11px; color: #6b7280">Free plan</span>
+          </div>
+          <button class="upgrade-btn-sidebar">Upgrade</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-left">
+          <button
+            class="top-icon-btn sidebar-toggle-btn"
+            id="sidebarToggleBtn"
+            aria-label="Toggle sidebar"
+          >
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <div class="brand-pill">
+            <span class="brand-dot"></span>
+            <span>Icertis Agents</span>
+          </div>
+
+          <div class="model-selector">
+            <span>Risk Orchestrator</span>
+            <i
+              class="fa-solid fa-chevron-down"
+              style="font-size: 11px; color: #9ca3af"
+            ></i>
+          </div>
+        </div>
+
+        <div class="top-right">
+          <button class="btn top-share d-none d-sm-inline" aria-label="Share">
+            <i class="fa-solid fa-share" aria-hidden="true"></i> Share
+          </button>
+
+          <button class="top-icon-btn d-none d-sm-flex" aria-label="Profile">
+            <i class="fa-regular fa-user"></i>
+          </button>
+          <button class="top-icon-btn" aria-label="More">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Log -->
+      <section class="chat-log" id="chatLog">
+        <div class="chat-inner" id="chatInner">
+          <!-- Initial Greeting -->
+          <div class="greeting-wrapper" id="initialGreeting">
+            <h1 class="hero-title">
+              AI-Powered Risk Orchestrator
+              <span id="statusPill" class="status-pill" style="display:none;"></span>
+            </h1>
+            <p class="hero-subtitle">
+              Upload a contract or describe your project. The orchestrator classifies risks,
+              highlights gaps, and may pause to ask for your approval or feedback before
+              producing a concise risk brief.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Input Area (Fixed to bottom) -->
+      <div class="input-area-fixed">
+        <div class="input-container">
+          <div class="prompt-box" id="promptBox">
+            <textarea
+              id="promptTextarea"
+              class="prompt-textarea"
+              rows="1"
+              placeholder="Describe the contract, project, or risk scenario…"
+            ></textarea>
+
+            <!-- Plus Icon (Left) -->
+            <div class="input-icon-left plus-btn" title="Attach document">
+              <i class="fa-solid fa-plus"></i>
+            </div>
+
+            <!-- Hidden file input for upload_contract API -->
+            <input
+              type="file"
+              id="descriptionFile"
+              accept=".txt,.pdf,.doc,.docx"
+              style="display:none;"
+            />
+
+            <!-- Right Icons -->
+            <div class="input-actions-right">
+              <div class="mic-btn" title="Use Microphone">
+                <i class="fa-solid fa-microphone"></i>
+              </div>
+              <div class="send-btn" id="sendBtn" title="Run risk review">
+                <i class="fa-solid fa-arrow-up"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-hint-row">
+            <span>You can upload files in .docx, .pdf, or .txt format.</span>
+            <span id="inputHintRight">
+              Icertis demo · <span class="kbd">Internal</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /**************************************************************************
+     * Frontend logic — updated to work with new backend endpoints:
+     *  - POST /chat/start  { user_email, message, thread_id? }
+     *  - POST /chat/resume { thread_id, decision }
+     *
+     * Notes:
+     *  - This file prompts once for a USER_EMAIL (one-time). Replace with
+     *    your auth token/user flow when available.
+     **************************************************************************/
+
+    const textarea = document.getElementById("promptTextarea");
+    const sendBtn = document.getElementById("sendBtn");
+    const chatLog = document.getElementById("chatLog");
+    const chatInner = document.getElementById("chatInner");
+    const initialGreeting = document.getElementById("initialGreeting");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+    const plusBtn = document.querySelector(".plus-btn");
+    const fileInputEl = document.getElementById("descriptionFile");
+    const statusPill = document.getElementById("statusPill");
+    const inputHintRight = document.getElementById("inputHintRight");
+    const MAX_HEIGHT = 160;
+    const USER_NAME_INITIALS = "RA";
+    const ASSISTANT_ICON = '<i class="fa-solid fa-bolt"></i>';
+
+    // --- Durable session state ---
+    // Prompt user for email once (replace with your auth flow). This allows the server
+    // to create/lookup the user and persist conversations.
+    let USER_EMAIL = localStorage.getItem("icertis_user_email") || "";
+    if (!USER_EMAIL) {
+      USER_EMAIL = prompt("Enter your email for conversation history (demo):", "ram@example.com") || "ram@example.com";
+      localStorage.setItem("icertis_user_email", USER_EMAIL);
+    }
+
+    let currentThreadId = null;       // durable thread id returned by server
+    let awaitingHumanInput = false;   // whether the orchestrator awaits human input
+
+    const DEFAULT_HINT_HTML = 'Icertis demo · <span class="kbd">Internal</span>';
+    const HUMAN_HINT_HTML  = 'Agent paused for your decision · <span class="kbd">Reply to approve or give feedback</span>';
+
+    /* Sidebar toggle (mobile) */
+    sidebarToggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("sidebar-open");
+    });
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener("click", (e) => {
+      if (window.innerWidth > 768) return;
+      if (!sidebar.classList.contains("sidebar-open")) return;
+      const clickedInsideSidebar = sidebar.contains(e.target);
+      const clickedToggle = sidebarToggleBtn.contains(e.target);
+      if (!clickedInsideSidebar && !clickedToggle) {
+        sidebar.classList.remove("sidebar-open");
+      }
+    });
+
+    // New chat button: reset conversation (client-side)
+    const newChatBtn = document.getElementById("newChatBtn");
+    if (newChatBtn) {
+      newChatBtn.addEventListener("click", () => {
+        chatInner.innerHTML = "";
+        chatInner.appendChild(initialGreeting);
+        textarea.value = "";
+        textarea.style.height = "20px";
+        setStatusPill(null);
+        awaitingHumanInput = false;
+        currentThreadId = null;
+        inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+      });
+    }
+
+    function scrollChatToBottom() {
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function renderMarkdown(targetEl, markdown) {
+      if (window.marked && typeof marked.parse === "function") {
+        targetEl.innerHTML = marked.parse(markdown);
+      } else {
+        targetEl.textContent = markdown;
+      }
+    }
+
+    function createUserMessage(text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "chat-message user-message";
+      const row = document.createElement("div");
+      row.className = "message-row";
+      const bubble = document.createElement("div");
+      bubble.className = "message-bubble";
+      const textDiv = document.createElement("div");
+      textDiv.className = "message-text";
+      textDiv.textContent = text;
+      bubble.appendChild(textDiv);
+      const icon = document.createElement("div");
+      icon.className = "message-icon";
+      icon.textContent = USER_NAME_INITIALS;
+      row.appendChild(bubble);
+      row.appendChild(icon);
+      wrapper.appendChild(row);
+      return wrapper;
+    }
+
+    function createAssistantMessageFromMarkdown(markdown, { loading = false } = {}) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "chat-message assistant-message";
+      const row = document.createElement("div");
+      row.className = "message-row";
+      const icon = document.createElement("div");
+      icon.className = "message-icon";
+      icon.innerHTML = ASSISTANT_ICON;
+      const bubble = document.createElement("div");
+      bubble.className = "message-bubble";
+      if (loading) bubble.classList.add("summary-loading");
+      const textDiv = document.createElement("div");
+      textDiv.className = "message-text";
+      renderMarkdown(textDiv, markdown);
+      bubble.appendChild(textDiv);
+      row.appendChild(icon);
+      row.appendChild(bubble);
+      wrapper.appendChild(row);
+      const reactions = document.createElement("div");
+      reactions.className = "reaction-icons";
+      reactions.innerHTML = `
+        <i class="fa-regular fa-copy" title="Copy"></i>
+        <i class="fa-regular fa-thumbs-up" title="Like"></i>
+        <i class="fa-regular fa-thumbs-down" title="Dislike"></i>
+        <i class="fa-solid fa-arrow-up-from-bracket" title="Share"></i>
+        <i class="fa-solid fa-arrows-rotate" title="Regenerate response"></i>
+        <i class="fa-solid fa-ellipsis" title="More actions"></i>
+      `;
+      wrapper.appendChild(reactions);
+      return wrapper;
+    }
+
+    function updateAssistantMessageMarkdown(wrapper, markdown, { loading = false } = {}) {
+      if (!wrapper) return;
+      const bubble = wrapper.querySelector(".message-bubble");
+      const textDiv = wrapper.querySelector(".message-text");
+      if (!bubble || !textDiv) return;
+      bubble.classList.toggle("summary-loading", loading);
+      renderMarkdown(textDiv, markdown);
+    }
+
+    function appendMessage(messageElement) {
+      if (initialGreeting && initialGreeting.parentElement) {
+        initialGreeting.remove();
+      }
+      chatInner.appendChild(messageElement);
+      scrollChatToBottom();
+    }
+
+    function setStatusPill(status) {
+      if (!status) {
+        statusPill.style.display = "none";
+        statusPill.className = "status-pill";
+        statusPill.textContent = "";
+        return;
+      }
+      statusPill.style.display = "inline-block";
+      statusPill.className = "status-pill";
+      if (status === "failed") {
+        statusPill.textContent = "Failed";
+        statusPill.classList.add("status-failed");
+      } else if (status === "success" || status === "completed") {
+        statusPill.textContent = "Ready";
+        statusPill.classList.add("status-success");
+      } else {
+        statusPill.textContent = "In Progress";
+        statusPill.classList.add("status-progress");
+      }
+    }
+
+    function setLoading(isLoading) {
+      textarea.disabled = isLoading;
+      if (isLoading) {
+        sendBtn.classList.remove("active");
+        sendBtn.style.opacity = "0.7";
+      } else {
+        sendBtn.style.opacity = "1";
+        if (textarea.value.trim() !== "") sendBtn.classList.add("active");
+      }
+    }
+
+    // ===== File upload integration (/upload_contract) =====
+    plusBtn.addEventListener("click", () => fileInputEl.click());
+
+    fileInputEl.addEventListener("change", async () => {
+      const file = fileInputEl.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append("description_file", file);
+      const uploadingMsg = createAssistantMessageFromMarkdown("_Uploading document & extracting contract context…_", { loading: true });
+      appendMessage(uploadingMsg);
+      setLoading(true);
+      try {
+        const res = await fetch("/upload_contract", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok || data.status !== "success") {
+          updateAssistantMessageMarkdown(uploadingMsg, "**File upload failed.**\n\n" + (data.message || "Unknown error"), { loading: false });
+          return;
+        }
+        const desc = data.project_description || "";
+        textarea.value = desc;
+        textarea.style.height = "auto";
+        const newHeight = Math.min(textarea.scrollHeight, MAX_HEIGHT);
+        textarea.style.height = (desc ? newHeight : 20) + "px";
+        textarea.style.overflowY = textarea.scrollHeight > MAX_HEIGHT ? "auto" : "hidden";
+        updateAssistantMessageMarkdown(uploadingMsg, "✅ Document processed successfully.\n\nI've pre-filled the description box with the extracted context. Review or edit it, then send to run a full risk review.", { loading: false });
+      } catch (e) {
+        updateAssistantMessageMarkdown(uploadingMsg, "**Upload error.**\n\n" + e.message, { loading: false });
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ===== Start workflow (/chat/start) =====
+    async function startRiskWorkflow(userMessage) {
+      const trimmedUser = userMessage.trim();
+      if (!trimmedUser) return;
+
+      const placeholder = createAssistantMessageFromMarkdown("_Analyzing with orchestrator agents…_", { loading: true });
+      appendMessage(placeholder);
+
+      setLoading(true);
+      setStatusPill("in_progress");
+      inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+
+      // send thread_id if we have one (resuming same conversation), otherwise server will create new
+      const payload = {
+        user_email: USER_EMAIL,
+        message: trimmedUser,
+        thread_id: currentThreadId || null
+      };
+
+      try {
+        const res = await fetch("/chat/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        // If server returned HTTP error / explicit failure
+        if (!res.ok || (data && data.status === "failed")) {
+          setStatusPill("failed");
+          awaitingHumanInput = false;
+          let errMarkdown = "**Validation or orchestration failed.**\n\n" + (data.message || (data.errors && data.errors.join("\n")) || "Unknown error");
+          updateAssistantMessageMarkdown(placeholder, errMarkdown, { loading: false });
+          return;
+        }
+
+        // Normalize server response for common shapes:
+        // - Completed run may return { message, summary, quality_score, thread_id, status }
+        // - Interrupt may be returned as { "__interrupt__": [...], thread_id, partial_state... } or { status: "awaiting_human", thread_id, partial_state... }
+        // - Legacy risk_analysis_report path: { status: "in_progress", risk_analysis_report: { human_input: true, clarification: [...] } }
+
+        // Save thread id if provided
+        if (data.thread_id) currentThreadId = data.thread_id;
+
+        // 1) Legacy direct human_input in risk_analysis_report
+        const topRiskReport = data.risk_analysis_report;
+        if (data.status === "in_progress" && topRiskReport && topRiskReport.human_input === true) {
+          awaitingHumanInput = true;
+          inputHintRight.innerHTML = HUMAN_HINT_HTML;
+          setStatusPill("in_progress");
+
+          const clarifications = Array.isArray(topRiskReport.clarification) ? topRiskReport.clarification : [];
+          let md = "";
+          if (clarifications.length > 0) {
+            md += "### Clarification required from risk analysis agent\n\n";
+            md += "The agent needs more information before it can finalize the risks:\n\n";
+            md += clarifications.map((c,i) => `${i+1}. ${c}`).join("\n");
+            md += "\n\nPlease answer these questions in your next message. I’ll use your response to rerun the analysis.\n\n";
+          } else {
+            md += "### Agent requires your input\n\nPlease provide additional details about the scenario in your next message.";
+          }
+          updateAssistantMessageMarkdown(placeholder, md, { loading: false });
+          return;
+        }
+
+        // 2) LangGraph interrupt shape or awaiting_human
+        if ((data && data.__interrupt__) || data.status === "awaiting_human") {
+          // prefer data.partial_state if present
+          const partial = data.partial_state || {};
+          awaitingHumanInput = true;
+          inputHintRight.innerHTML = HUMAN_HINT_HTML;
+          setStatusPill("in_progress");
+
+          const riskReport = partial.risk_analysis_report || (data.risk_analysis_report || {});
+          const clarifications = Array.isArray(riskReport?.clarification) ? riskReport.clarification : [];
+          let md = "";
+
+          if (clarifications.length > 0) {
+            md += "### Clarification required from risk analysis agent\n\n";
+            md += "The agent needs more information before it can finalize the risks:\n\n";
+            md += clarifications.map((c,i) => `${i+1}. ${c}`).join("\n");
+            md += "\n\nPlease answer these questions in your next message. I’ll pass your response back into the workflow.\n\n";
+          } else {
+            md += "### Agent requires your input\n\n";
+          }
+
+          if (partial.summary) md += "**Current draft summary (if available):**\n\n" + partial.summary + "\n\n";
+          if (typeof partial.quality_score === "number") md += `_Internal quality score: ${partial.quality_score}/100_\n\n`;
+          md += data.prompt_for_human || "Please respond in your own words.";
+
+          updateAssistantMessageMarkdown(placeholder, md, { loading: false });
+          return;
+        }
+
+        // 3) Success / completed path
+        awaitingHumanInput = false;
+        inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+        setStatusPill(data.status || "success");
+
+        // Show server response: prefer data.message, fallback to summary or response
+        const assistantText = data.message || data.response || data.summary || "No summary available.";
+        let md = assistantText;
+        if (typeof data.quality_score === "number") md += `\n\n---\n_Quality score: ${data.quality_score}/100_`;
+
+        updateAssistantMessageMarkdown(placeholder, md, { loading: false });
+      } catch (e) {
+        setStatusPill("failed");
+        awaitingHumanInput = false;
+        inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+        updateAssistantMessageMarkdown(placeholder, "Request failed:\n\n" + e.message, { loading: false });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ===== Resume workflow (/chat/resume) when human responds =====
+    async function resumeRiskWorkflow(humanDecision) {
+      if (!currentThreadId) {
+        // nothing to resume — start fresh
+        return startRiskWorkflow(humanDecision);
+      }
+
+      const placeholder = createAssistantMessageFromMarkdown("_Sending your decision/feedback to the agents…_", { loading: true });
+      appendMessage(placeholder);
+      setLoading(true);
+      setStatusPill("in_progress");
+
+      const payload = { thread_id: currentThreadId, decision: humanDecision.trim() };
+
+      try {
+        const res = await fetch("/chat/resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok || (data && data.status === "failed")) {
+          setStatusPill("failed");
+          awaitingHumanInput = false;
+          inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+          let msg = data.message || "Resume failed.";
+          updateAssistantMessageMarkdown(placeholder, "**Error while resuming workflow.**\n\n" + msg, { loading: false });
+          return;
+        }
+
+        // If still awaiting human again
+        if (data.status === "awaiting_human" || (data && data.__interrupt__)) {
+          awaitingHumanInput = true;
+          currentThreadId = data.thread_id || currentThreadId;
+          inputHintRight.innerHTML = HUMAN_HINT_HTML;
+          setStatusPill("in_progress");
+
+          const partialSummary = data.partial_state?.summary;
+          const riskReport = data.partial_state?.risk_analysis_report || data.risk_analysis_report || {};
+          const clarifications = Array.isArray(riskReport?.clarification) ? riskReport.clarification : [];
+
+          let md = "### Agent needs additional input\n\n";
+          if (clarifications.length > 0) {
+            md += "The agent still needs the following details:\n\n";
+            md += clarifications.map((c,i) => `${i+1}. ${c}`).join("\n") + "\n\nPlease respond again with your answers.\n\n";
+          }
+          if (partialSummary) md += "**Updated draft summary (if available):**\n\n" + partialSummary + "\n\n";
+          md += data.prompt_for_human || "Please respond again with your decision or feedback.";
+
+          updateAssistantMessageMarkdown(placeholder, md, { loading: false });
+          return;
+        }
+
+        // Completed
+        awaitingHumanInput = false;
+        currentThreadId = data.thread_id || currentThreadId;
+        inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+        setStatusPill("completed");
+
+        const assistantText = data.message || data.response || data.summary || "No summary available.";
+        let md = assistantText;
+        if (typeof data.quality_score === "number") md += `\n\n---\n_Quality score: ${data.quality_score}/100_`;
+        if (data.message) md += `\n\n> ${data.message}`;
+
+        updateAssistantMessageMarkdown(placeholder, md, { loading: false });
+      } catch (e) {
+        awaitingHumanInput = false;
+        setStatusPill("failed");
+        inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+        updateAssistantMessageMarkdown(placeholder, "Resume request failed:\n\n" + e.message, { loading: false });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ===== Interaction handlers (send) =====
+    function handleSend() {
+      const userMessage = textarea.value;
+      const trimmed = userMessage.trim();
+      if (!trimmed) return;
+
+      // Append user message locally to UI
+      appendMessage(createUserMessage(userMessage));
+      // Clear input
+      textarea.value = "";
+      textarea.style.height = "20px";
+      textarea.style.overflowY = "hidden";
+      sendBtn.classList.remove("active");
+
+      // If waiting for human input, call resume; else start (or continue) conversation
+      if (awaitingHumanInput) {
+        resumeRiskWorkflow(trimmed);
+      } else {
+        startRiskWorkflow(trimmed);
+      }
+    }
+
+    // Auto-resize textarea + toggle send button
+    textarea.addEventListener("input", function () {
+      this.style.height = "auto";
+      const newHeight = Math.min(this.scrollHeight, MAX_HEIGHT);
+      if (this.value === "") {
+        this.style.height = "20px";
+      } else {
+        this.style.height = newHeight + "px";
+      }
+      this.style.overflowY = this.scrollHeight > MAX_HEIGHT ? "auto" : "hidden";
+      if (this.value.trim() !== "") sendBtn.classList.add("active"); else sendBtn.classList.remove("active");
+    });
+
+    // Enter to send, Shift+Enter for newline
+    textarea.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (sendBtn.classList.contains("active")) handleSend();
+      }
+    });
+
+    // Click send button
+    sendBtn.addEventListener("click", function () {
+      if (this.classList.contains("active")) handleSend();
+    });
+
+    // Optional: make static sidebar items open a new chat / set thread id if you add data-thread
+    document.querySelectorAll(".chat-history-item[data-thread]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const thread = el.getAttribute("data-thread");
+        if (thread) {
+          // load conversation in this thread (just set thread id so next send continues it)
+          currentThreadId = thread;
+          chatInner.innerHTML = "";
+          chatInner.appendChild(initialGreeting);
+          setStatusPill(null);
+          awaitingHumanInput = false;
+          inputHintRight.innerHTML = DEFAULT_HINT_HTML;
+          textarea.focus();
+        }
+      });
+    });
+
+  </script>
+</body>
+</html>

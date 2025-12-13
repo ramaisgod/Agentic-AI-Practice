@@ -1,0 +1,5 @@
+LLM_PROVIDER = "llama" # gemini, openai
+GEMINI_API_KEY = "AIzaSyCOtOaOcX1YeF_MIEqOSzk5KUliocgy8Wg"
+RAPID_API_KEY = "f1d87746aemsh0b3225ffc9c75e8p108645jsn066ccdd26f5c"
+OPENAI_API_KEY = "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"
+
