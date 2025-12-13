@@ -48,8 +48,8 @@ class SummarizerAgent:
 
             # Truncate for storage / perf
             truncated = resp_text[:1000] if isinstance(resp_text, str) else ""
-            self.state.summary = truncated
-            logger.debug("Truncated summary length=%d", len(self.state.summary))
+            self.state.summary = resp_text
+            logger.debug("Truncated summary length=%d", len(truncated))
 
             # Decide next status based on whether human input was flagged in risk report
             human_input_flag = False

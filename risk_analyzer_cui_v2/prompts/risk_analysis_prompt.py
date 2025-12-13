@@ -81,7 +81,6 @@ Return STRICTLY in the following JSON format:
 ]
 }
 
-Do NOT ask for clarification when information is complete.
 Do NOT output anything outside the allowed formats.
 
 --------------------------------------------------------

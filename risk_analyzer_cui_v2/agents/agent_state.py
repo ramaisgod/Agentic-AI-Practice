@@ -27,6 +27,7 @@ class Message(BaseModel):
 class AgentState(BaseModel):
     user_id: str
     input_contract: str
+    input_history: List[str] = Field(default_factory=list)
     messages: List[Message] = Field(default_factory=list)
     errors: List[str] = Field(default_factory=list)
     message: Optional[str] = None

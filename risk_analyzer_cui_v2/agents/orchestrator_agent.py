@@ -1,12 +1,11 @@
 # orchestrator_agent.py
 import uuid
-from typing import Union, Dict, Any, Optional
+from typing import Union, Dict, Any
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Command, interrupt
-from langgraph.checkpoint.postgres import PostgresSaver
+from core.database import checkpointer
 
-from core.database import checkpointer  # <-- corrected import
 from .agent_state import AgentState
 from .validation_agent import ValidationAgent
 from .risk_analysis_agent import RiskAnalysisAgent
@@ -36,7 +35,6 @@ class OrchestratorAgent:
         # Ensure thread_id exists
         if not self.state.thread_id:
             self.state.thread_id = str(uuid.uuid4())
-            logger.info("Generated new thread_id=%s", self.state.thread_id)
 
         # --- Create sub-agents BEFORE graph build ---
         self.validation = ValidationAgent()
@@ -44,26 +42,25 @@ class OrchestratorAgent:
         self.critic = CriticAgent()
         self.summarizer = SummarizerAgent()
 
-        # --- Build graph only once ---
+        # Build once
         if OrchestratorAgent._graph is None:
-            logger.info("Building computation graph")
             OrchestratorAgent._graph = self._build_graph()
 
         self.graph = OrchestratorAgent._graph
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------
     @staticmethod
     def _to_dict_state(state: Union[AgentState, dict]) -> dict:
         if hasattr(state, "model_dump"):
             return state.model_dump()
         return state if isinstance(state, dict) else {}
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------
     def _build_graph(self):
         logger.info("Creating StateGraph...")
         g = StateGraph(AgentState)
 
-        # Add nodes
+        # Nodes
         g.add_node("validation", self._wrap(self.validation))
         g.add_node("analyzer", self._wrap(self.analyzer))
         g.add_node("critic", self._wrap(self.critic))
@@ -71,32 +68,40 @@ class OrchestratorAgent:
         g.add_node("human_review", self._human_review_node)
         g.add_node("summarizer", self._wrap(self.summarizer))
 
-        # Edges
+        # Flow
         g.add_edge(START, "validation")
 
         g.add_conditional_edges(
             "validation",
             self.route_after_validation,
-            {"analyzer": "analyzer", "end": END}
+            {
+                "analyzer": "analyzer",
+                "end": END
+            }
         )
 
         g.add_conditional_edges(
             "analyzer",
             self.route_after_analyzer,
-            {"critic": "critic", "end": END}
+            {
+                "critic": "critic",
+                "end": END
+            }
         )
 
         g.add_edge("critic", "arbiter")
-        g.add_edge("human_review", "summarizer")
+
+        # 🔥 FIX: After human feedback, restart full pipeline
+        g.add_edge("human_review", "validation")
+
         g.add_edge("summarizer", END)
 
-        logger.info("Compiling graph with PostgresSaver")
         compiled = g.compile(checkpointer=checkpointer)
-        logger.info("Graph compiled")
+        logger.info("Graph compiled successfully")
 
         return compiled
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------
     def _wrap(self, agent_callable):
         def node(state):
             name = agent_callable.__class__.__name__
@@ -116,70 +121,89 @@ class OrchestratorAgent:
 
         return node
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------
     @staticmethod
     def route_after_validation(state):
         s = OrchestratorAgent._to_dict_state(state)
-        if s.get("errors") or s.get("status") == "failed":
+
+        errors = s.get("errors")
+        status = s.get("status")
+
+        if errors or status == "failed":
             return "end"
+
         return "analyzer"
 
+    # -----------------------------------------------
     @staticmethod
     def route_after_analyzer(state):
         s = OrchestratorAgent._to_dict_state(state)
+
         if s.get("errors") or s.get("status") == "failed":
             return "end"
+
         return "critic"
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------
     def _arbiter_node(self, state):
         s = OrchestratorAgent._to_dict_state(state)
 
         score = s.get("quality_score", 0)
         refinements = s.get("refinement_count", 0)
-        human_flag = s.get("human_input", False)
+        wants_human = s.get("human_input", False)
         thread_id = s.get("thread_id")
 
-        if human_flag:
+        # 🔥 HUMAN FEEDBACK REQUESTED
+        if wants_human:
             return Command(
                 goto="human_review",
-                update={"message": "Requires human review", "thread_id": thread_id}
+                update={
+                    "message": "Human review requested",
+                    "thread_id": thread_id
+                }
             )
 
+        # 🔁 REFINE IF POOR QUALITY
         if score < 80 and refinements < 2:
             return Command(
                 goto="analyzer",
                 update={
-                    "message": "Refining",
+                    "message": "Refining based on quality score",
                     "refinement_count": refinements + 1,
                     "thread_id": thread_id
                 }
             )
 
+        # 👍 READY FOR SUMMARY
         return Command(
             goto="summarizer",
-            update={"message": "Good quality", "thread_id": thread_id}
+            update={"message": "Quality is good", "thread_id": thread_id}
         )
 
+    # -----------------------------------------------
     def _human_review_node(self, state):
+        """
+        User is asked to provide corrections.
+        LangGraph interrupt pauses execution.
+        """
         return interrupt(
-            "Human review required. Approve summary? (yes/no) Or provide feedback."
+            "Human review needed. Provide corrections or improvements."
         )
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------
     def run(self):
         thread_id = self.state.thread_id
 
-        # Create conversation if missing
+        # Ensure conversation exists
         conv = get_conversation_by_thread(thread_id)
         if not conv:
             conv_id = create_conversation(self.state.user_id, thread_id)
             conv = {"conversation_id": conv_id}
 
-        # Save user message
+        # Log initial user message
         add_message(conv["conversation_id"], "user", self.state.input_contract)
 
-        # Run graph (checkpointer automatically persists state)
+        # Run graph
         result = self.graph.invoke(
             self.state.model_dump(),
             config={"configurable": {"thread_id": thread_id}}

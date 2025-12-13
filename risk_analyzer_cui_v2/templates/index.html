@@ -1349,7 +1349,7 @@
             md += clarifications.map((c,i) => `${i+1}. ${c}`).join("\n") + "\n\nPlease respond again with your answers.\n\n";
           }
           if (partialSummary) md += "**Updated draft summary (if available):**\n\n" + partialSummary + "\n\n";
-          md += data.prompt_for_human || "Please respond again with your decision or feedback.";
+          md += data.prompt_for_human || "";
 
           updateAssistantMessageMarkdown(placeholder, md, { loading: false });
           return;

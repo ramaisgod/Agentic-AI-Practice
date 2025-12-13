@@ -7,8 +7,6 @@ from typing import Optional, Dict, Any, List
 from core.database import app_pool
 from core.logger import logger
 
-DEFAULT_STATEMENT_TIMEOUT_MS = 8000  # 8 seconds
-
 
 # -------------------------------------------------------
 # CONNECTION MANAGER (psycopg3 native)

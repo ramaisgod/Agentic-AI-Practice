@@ -32,6 +32,7 @@ class RiskAnalysisAgent:
         try:
             logger.debug("Building recent_context from last 3 messages")
             recent_context = "\n".join([f"{m.role}: {m.content}" for m in self.state.messages[-3:]])
+            logger.debug(f"recent_context: {recent_context}")
         except Exception as e:
             logger.exception("Failed to build recent_context: %s", e)
             recent_context = ""
@@ -46,12 +47,12 @@ class RiskAnalysisAgent:
             if isinstance(resp_text, str):
                 resp_text = resp_text.strip()
             logger.info("LLM risk analysis response received")
-            logger.debug("Raw LLM response preview: %s", (resp_text[:500] + "...") if isinstance(resp_text, str) and len(resp_text) > 500 else resp_text)
+            logger.info("Raw LLM response preview: %s", (resp_text[:500] + "...") if isinstance(resp_text, str) and len(resp_text) > 500 else resp_text)
 
             # Try to extract JSON from response
             try:
                 resp_json = extract_json(resp_text) or {}
-                logger.debug("Extracted JSON from LLM response: %s", resp_json)
+                logger.info("Extracted JSON from LLM response: %s", resp_json)
             except Exception as e:
                 logger.exception("Failed to extract JSON from LLM response: %s", e)
                 resp_json = {}
